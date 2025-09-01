@@ -13,7 +13,11 @@ function renderProjects(filter = "all") {
 
     const projectDiv = document.createElement("div");
     projectDiv.classList.add("project");
-    projectDiv.innerHTML = `<h3>Proyecto: ${project}</h3>`;
+    projectDiv.innerHTML = `
+      <h3>Proyecto: ${project} 
+        <button onclick="deleteProject('${project}')">🗑️</button>
+      </h3>
+    `;
 
     projects[project].forEach((c, index) => {
       const caseDiv = document.createElement("div");
@@ -52,6 +56,7 @@ function deleteCase(project, index) {
   projects[project].splice(index, 1);
   if (projects[project].length === 0) delete projects[project];
   saveProjects();
+  updateProjectFilter();
   renderProjects(document.getElementById("projectFilter").value);
 }
 
@@ -62,6 +67,15 @@ function editCase(project, index) {
   document.getElementById("caseDescription").value = c.description;
 
   deleteCase(project, index);
+}
+
+function deleteProject(project) {
+  if (confirm(`¿Eliminar el proyecto "${project}" completo?`)) {
+    delete projects[project];
+    saveProjects();
+    updateProjectFilter();
+    renderProjects(document.getElementById("projectFilter").value);
+  }
 }
 
 function clearAll() {
@@ -122,9 +136,6 @@ document.getElementById("showAllBtn").addEventListener("click", () => renderProj
 // Inicializar
 updateProjectFilter();
 renderProjects();
-
-
-
 
 
 
