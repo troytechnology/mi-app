@@ -1,4 +1,4 @@
-let projects = JSON.parse(localStorage.getItem("projects")) || {};
+let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
 // Guardar en localStorage
 function saveProjects() {
@@ -6,43 +6,44 @@ function saveProjects() {
 }
 
 // Renderizar proyectos
-function renderProjects() {
-  const projectList = document.getElementById("projectList");
-  projectList.innerHTML = "";
+function renderProjects(filter = "Todos") {
+  const container = document.getElementById("projectList");
+  container.innerHTML = "";
 
-  const filter = document.getElementById("projectFilter").value || "all";
+  let filteredProjects = filter === "Todos" ? projects : projects.filter(p => p.name === filter);
 
-  Object.keys(projects).forEach(project => {
-    if (filter !== "all" && filter !== project) return;
-
+  filteredProjects.forEach((projectObj, projectIndex) => {
     const projectCard = document.createElement("div");
     projectCard.classList.add("card", "mb-3");
 
     const projectHeader = document.createElement("div");
-    projectHeader.classList.add("card-header", "fw-bold");
-    projectHeader.innerHTML = `Proyecto: ${project}`;
+    projectHeader.classList.add("card-header", "fw-bold", "d-flex", "justify-content-between");
+    projectHeader.innerHTML = `
+      <span>Proyecto: ${projectObj.name}</span>
+      <button class="btn btn-danger btn-sm delete-project" data-index="${projectIndex}">Eliminar Proyecto</button>
+    `;
     projectCard.appendChild(projectHeader);
 
     const projectBody = document.createElement("div");
     projectBody.classList.add("card-body");
 
-    projects[project].forEach((c, index) => {
+    projectObj.cases.forEach((caso, caseIndex) => {
       const accordion = document.createElement("div");
       accordion.classList.add("accordion", "mb-2");
 
       accordion.innerHTML = `
         <div class="accordion-item">
-          <h2 class="accordion-header" id="heading-${project}-${index}">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${project}-${index}">
-              Caso: ${c.title}
+          <h2 class="accordion-header" id="heading-${projectIndex}-${caseIndex}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectIndex}-${caseIndex}">
+              Caso: ${caso.title}
             </button>
           </h2>
-          <div id="collapse-${project}-${index}" class="accordion-collapse collapse">
+          <div id="collapse-${projectIndex}-${caseIndex}" class="accordion-collapse collapse">
             <div class="accordion-body">
-              ${c.description}
+              ${caso.description}
               <div class="mt-2">
-                <button class="btn btn-warning btn-sm">Editar</button>
-                <button class="btn btn-danger btn-sm">Eliminar</button>
+                <button class="btn btn-warning btn-sm edit-case" data-project="${projectIndex}" data-case="${caseIndex}">Editar</button>
+                <button class="btn btn-danger btn-sm delete-case" data-project="${projectIndex}" data-case="${caseIndex}">Eliminar</button>
               </div>
             </div>
           </div>
@@ -52,8 +53,10 @@ function renderProjects() {
     });
 
     projectCard.appendChild(projectBody);
-    projectList.appendChild(projectCard);
+    container.appendChild(projectCard);
   });
+
+  addEventListeners();
 }
 
 // Rellenar select de proyectos
@@ -62,17 +65,17 @@ function populateProjectSelect() {
   const filter = document.getElementById("projectFilter");
 
   select.innerHTML = '<option value="">-- Selecciona un proyecto existente --</option>';
-  filter.innerHTML = '<option value="all">Todos</option>';
+  filter.innerHTML = '<option value="Todos">Todos</option>';
 
-  Object.keys(projects).forEach(p => {
+  projects.forEach(p => {
     const opt1 = document.createElement("option");
-    opt1.value = p;
-    opt1.textContent = p;
+    opt1.value = p.name;
+    opt1.textContent = p.name;
     select.appendChild(opt1);
 
     const opt2 = document.createElement("option");
-    opt2.value = p;
-    opt2.textContent = p;
+    opt2.value = p.name;
+    opt2.textContent = p.name;
     filter.appendChild(opt2);
   });
 }
@@ -95,8 +98,13 @@ document.getElementById("addCase").addEventListener("click", () => {
     return;
   }
 
-  if (!projects[projectKey]) projects[projectKey] = [];
-  projects[projectKey].push({ title: caseTitle, description: caseDesc });
+  let projectObj = projects.find(p => p.name === projectKey);
+  if (!projectObj) {
+    projectObj = { name: projectKey, cases: [] };
+    projects.push(projectObj);
+  }
+
+  projectObj.cases.push({ title: caseTitle, description: caseDesc });
 
   saveProjects();
   renderProjects();
@@ -145,7 +153,7 @@ document.getElementById("exportJSON").addEventListener("click", () => {
 // Eliminar todo
 document.getElementById("deleteAll").addEventListener("click", () => {
   if (confirm("¿Seguro que deseas eliminar todo?")) {
-    projects = {};
+    projects = [];
     saveProjects();
     renderProjects();
     populateProjectSelect();
@@ -154,16 +162,62 @@ document.getElementById("deleteAll").addEventListener("click", () => {
 
 // Ver todos
 document.getElementById("viewAll").addEventListener("click", () => {
-  document.getElementById("projectFilter").value = "all";
+  document.getElementById("projectFilter").value = "Todos";
   renderProjects();
 });
 
 // Cambio de filtro
-document.getElementById("projectFilter").addEventListener("change", renderProjects);
+document.getElementById("projectFilter").addEventListener("change", (e) => {
+  renderProjects(e.target.value);
+});
+
+// Editar / Eliminar casos y proyectos
+function addEventListeners() {
+  document.querySelectorAll(".delete-case").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const pIndex = e.target.getAttribute("data-project");
+      const cIndex = e.target.getAttribute("data-case");
+      if (confirm("¿Eliminar este caso?")) {
+        projects[pIndex].cases.splice(cIndex, 1);
+        saveProjects();
+        renderProjects();
+      }
+    });
+  });
+
+  document.querySelectorAll(".edit-case").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const pIndex = e.target.getAttribute("data-project");
+      const cIndex = e.target.getAttribute("data-case");
+      const caso = projects[pIndex].cases[cIndex];
+
+      document.getElementById("projectName").value = projects[pIndex].name;
+      document.getElementById("caseTitle").value = caso.title;
+      document.getElementById("caseDescription").value = caso.description;
+
+      projects[pIndex].cases.splice(cIndex, 1);
+      saveProjects();
+      renderProjects();
+    });
+  });
+
+  document.querySelectorAll(".delete-project").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const index = e.target.getAttribute("data-index");
+      if (confirm("¿Eliminar este proyecto completo?")) {
+        projects.splice(index, 1);
+        saveProjects();
+        renderProjects();
+        populateProjectSelect();
+      }
+    });
+  });
+}
 
 // Inicializar
 populateProjectSelect();
 renderProjects();
+
 
 
 
