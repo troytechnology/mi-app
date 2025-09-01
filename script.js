@@ -19,6 +19,74 @@ function updateProjectSelect() {
   });
 }
 
+function saveData() {
+  localStorage.setItem("projectsData", JSON.stringify(data));
+}
+
+function deleteProject(projectName) {
+  if (confirm(`¿Seguro que deseas eliminar el proyecto "${projectName}" y todos sus casos?`)) {
+    delete data[projectName];
+    saveData();
+    updateProjectSelect();
+    renderProjects();
+  }
+}
+
+function deleteCase(projectName, caseIndex) {
+  if (confirm(`¿Seguro que deseas eliminar este caso de "${projectName}"?`)) {
+    data[projectName].splice(caseIndex, 1);
+    if (data[projectName].length === 0) {
+      delete data[projectName]; // Si ya no quedan casos, borra el proyecto
+    }
+    saveData();
+    updateProjectSelect();
+    renderProjects();
+  }
+}
+
+function deleteAll() {
+  if (confirm("⚠️ ¿Seguro que deseas eliminar TODOS los proyectos y casos? Esta acción no se puede deshacer.")) {
+    data = {};
+    saveData();
+    updateProjectSelect();
+    renderProjects();
+  }
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "casos_exportados.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      if (typeof importedData === "object") {
+        data = importedData;
+        saveData();
+        updateProjectSelect();
+        renderProjects();
+        alert("✅ Datos importados con éxito.");
+      } else {
+        alert("⚠️ El archivo no tiene un formato válido.");
+      }
+    } catch (err) {
+      alert("⚠️ Error al leer el archivo JSON.");
+    }
+  };
+  reader.readAsText(file);
+}
+
 function renderProjects() {
   projectsAccordion.innerHTML = "";
   Object.entries(data).forEach(([project, cases], projectIndex) => {
@@ -30,6 +98,7 @@ function renderProjects() {
         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectId}">
           Proyecto: ${project}
         </button>
+        <button class="btn btn-danger btn-sm ms-2" onclick="deleteProject('${project}')">🗑️</button>
       </h2>
       <div id="collapse-${projectId}" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
         <div class="accordion-body">
@@ -40,6 +109,7 @@ function renderProjects() {
                   <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectId}-${caseIndex}">
                     Caso: ${c.title}
                   </button>
+                  <button class="btn btn-outline-danger btn-sm ms-2" onclick="deleteCase('${project}', ${caseIndex})">🗑️</button>
                 </h2>
                 <div id="collapse-${projectId}-${caseIndex}" class="accordion-collapse collapse" data-bs-parent="#cases-${projectId}">
                   <div class="accordion-body">
@@ -83,7 +153,7 @@ form.addEventListener("submit", (e) => {
   if (!data[project]) data[project] = [];
   data[project].push({ title, description });
 
-  localStorage.setItem("projectsData", JSON.stringify(data));
+  saveData();
 
   form.reset();
   newProjectDiv.classList.add("d-none");
@@ -94,6 +164,8 @@ form.addEventListener("submit", (e) => {
 
 updateProjectSelect();
 renderProjects();
+
+
 
 
 
