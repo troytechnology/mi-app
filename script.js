@@ -1,62 +1,202 @@
-// Guardar y obtener datos de LocalStorage
-function getCases() {
-  return JSON.parse(localStorage.getItem("cases")) || [];
+let projects = JSON.parse(localStorage.getItem("projects")) || {};
+
+// Guardar en localStorage
+function saveProjects() {
+  localStorage.setItem("projects", JSON.stringify(projects));
 }
 
-function saveCases(cases) {
-  localStorage.setItem("cases", JSON.stringify(cases));
-}
+// Actualizar dropdowns
+function populateProjectSelect() {
+  const select = document.getElementById("existingProject");
+  const filter = document.getElementById("projectFilter");
 
-// Renderizar tabla
-function renderCases() {
-  const cases = getCases();
-  const tbody = document.querySelector("#casesTable tbody");
-  tbody.innerHTML = "";
+  select.innerHTML = `<option value="">-- Selecciona un proyecto existente --</option>`;
+  filter.innerHTML = `<option value="all">Todos los proyectos</option>`;
 
-  cases.forEach((c, index) => {
-    const row = `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${c.title}</td>
-        <td>${c.status}</td>
-        <td>${c.description}</td>
-        <td>
-          <button class="btn btn-sm btn-danger" onclick="deleteCase(${index})">🗑️</button>
-        </td>
-      </tr>
-    `;
-    tbody.innerHTML += row;
+  Object.keys(projects).forEach(proj => {
+    const opt1 = document.createElement("option");
+    opt1.value = proj;
+    opt1.textContent = proj;
+    select.appendChild(opt1);
+
+    const opt2 = document.createElement("option");
+    opt2.value = proj;
+    opt2.textContent = proj;
+    filter.appendChild(opt2);
   });
 }
 
-// Eliminar caso
-function deleteCase(index) {
-  const cases = getCases();
-  cases.splice(index, 1);
-  saveCases(cases);
-  renderCases();
+// Renderizar proyectos
+function renderProjects(filter = "all") {
+  const container = document.getElementById("projectList");
+  container.innerHTML = "";
+
+  Object.keys(projects).forEach(proj => {
+    if (filter !== "all" && proj !== filter) return;
+
+    const projCard = document.createElement("div");
+    projCard.className = "project-card";
+    projCard.innerHTML = `<h5>Proyecto: ${proj} 
+        <button class="btn btn-sm btn-danger float-end" onclick="deleteProject('${proj}')">🗑</button>
+      </h5>`;
+
+    projects[proj].forEach((caso, index) => {
+      const caseDiv = document.createElement("div");
+      caseDiv.className = "case-card";
+
+      caseDiv.innerHTML = `
+        <div class="case-header" onclick="toggleCase(this)">
+          <strong>${caso.title}</strong>
+          <div>
+            <button class="btn btn-warning btn-sm" onclick="event.stopPropagation(); editCase('${proj}', ${index})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteCase('${proj}', ${index})">Eliminar</button>
+          </div>
+        </div>
+        <div class="case-body"><p>${caso.description}</p></div>
+      `;
+
+      projCard.appendChild(caseDiv);
+    });
+
+    container.appendChild(projCard);
+  });
 }
 
-// Manejar formulario
-document.querySelector("#caseForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+// Toggle case desplegable
+function toggleCase(el) {
+  const body = el.nextElementSibling;
+  body.style.display = body.style.display === "block" ? "none" : "block";
+}
 
-  const title = document.querySelector("#title").value;
-  const status = document.querySelector("#status").value;
-  const description = document.querySelector("#description").value;
+// Agregar caso
+document.getElementById("addCase").addEventListener("click", () => {
+  const newProj = document.getElementById("projectName").value.trim();
+  const existingProj = document.getElementById("existingProject").value;
+  const caseTitle = document.getElementById("caseTitle").value.trim();
+  const caseDescription = document.getElementById("caseDescription").value.trim();
 
-  const newCase = { title, status, description };
+  if (!caseTitle || !caseDescription) {
+    alert("Completa título y descripción");
+    return;
+  }
 
-  const cases = getCases();
-  cases.push(newCase);
-  saveCases(cases);
+  const proj = newProj || existingProj;
+  if (!proj) {
+    alert("Debes seleccionar o crear un proyecto");
+    return;
+  }
 
-  renderCases();
-  this.reset();
+  if (!projects[proj]) projects[proj] = [];
+  projects[proj].push({ title: caseTitle, description: caseDescription });
+
+  saveProjects();
+  populateProjectSelect();
+  renderProjects();
+
+  document.getElementById("projectName").value = "";
+  document.getElementById("caseTitle").value = "";
+  document.getElementById("caseDescription").value = "";
+});
+
+// Eliminar todo
+document.getElementById("deleteAll").addEventListener("click", () => {
+  if (confirm("¿Seguro que quieres eliminar todo?")) {
+    projects = {};
+    saveProjects();
+    populateProjectSelect();
+    renderProjects();
+  }
+});
+
+// Eliminar proyecto
+function deleteProject(proj) {
+  if (confirm(`¿Eliminar proyecto ${proj}?`)) {
+    delete projects[proj];
+    saveProjects();
+    populateProjectSelect();
+    renderProjects();
+  }
+}
+
+// Eliminar caso
+function deleteCase(proj, index) {
+  projects[proj].splice(index, 1);
+  if (projects[proj].length === 0) delete projects[proj];
+  saveProjects();
+  populateProjectSelect();
+  renderProjects();
+}
+
+// Editar caso
+function editCase(proj, index) {
+  const caso = projects[proj][index];
+  document.getElementById("projectName").value = proj;
+  document.getElementById("caseTitle").value = caso.title;
+  document.getElementById("caseDescription").value = caso.description;
+
+  projects[proj].splice(index, 1); // Quitar temporalmente
+  saveProjects();
+  renderProjects();
+}
+
+// Exportar JSON
+document.getElementById("exportJSON").addEventListener("click", () => {
+  const data = JSON.stringify(projects, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "proyectos.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// Importar JSON
+document.getElementById("importBtn").addEventListener("click", () => {
+  document.getElementById("importJSON").click();
+});
+
+document.getElementById("importJSON").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const imported = JSON.parse(event.target.result);
+
+      if (typeof imported !== "object" || Array.isArray(imported)) {
+        throw new Error("Formato no válido");
+      }
+
+      projects = imported;
+      saveProjects();
+      populateProjectSelect();
+      renderProjects();
+
+      alert("✅ JSON importado correctamente");
+    } catch (err) {
+      alert("Archivo inválido: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+});
+
+// Filtro de proyectos
+document.getElementById("projectFilter").addEventListener("change", (e) => {
+  renderProjects(e.target.value);
+});
+
+// Botón "Ver todos"
+document.getElementById("showAll").addEventListener("click", () => {
+  document.getElementById("projectFilter").value = "all";
+  renderProjects();
 });
 
 // Inicializar
-renderCases();
+populateProjectSelect();
+renderProjects();
 
 
 
