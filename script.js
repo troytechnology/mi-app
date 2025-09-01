@@ -70,6 +70,8 @@ function importJSON(event) {
     } catch {
       alert("Archivo inválido");
     }
+    // Reset para poder volver a importar el mismo archivo si hace falta
+    event.target.value = "";
   };
   reader.readAsText(file);
 }
@@ -104,7 +106,7 @@ function renderProjects() {
 
     // tarjeta del proyecto
     const card = document.createElement("div");
-    card.className = "card p-3";
+    card.className = "card p-3 mb-3";
     card.innerHTML = `<h5>Proyecto: ${project.name}</h5>`;
 
     // casos en acordeón
@@ -149,6 +151,7 @@ function renderProjects() {
 
 // Render inicial
 renderProjects();
+
 
 
 
