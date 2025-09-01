@@ -1,59 +1,64 @@
-// Guardar y obtener datos de LocalStorage
-function getCases() {
-  return JSON.parse(localStorage.getItem("cases")) || [];
+// script.js
+
+// Obtener casos guardados desde LocalStorage
+function obtenerCasos() {
+    return JSON.parse(localStorage.getItem("casos")) || [];
 }
 
-function saveCases(cases) {
-  localStorage.setItem("cases", JSON.stringify(cases));
+// Guardar casos en LocalStorage
+function guardarCasos(casos) {
+    localStorage.setItem("casos", JSON.stringify(casos));
 }
 
-// Renderizar tabla
-function renderCases() {
-  const cases = getCases();
-  const tbody = document.querySelector("#casesTable tbody");
-  tbody.innerHTML = "";
+// Renderizar la tabla de casos
+function renderizarCasos() {
+    const casos = obtenerCasos();
+    const tbody = document.querySelector("#tabla-casos tbody");
+    tbody.innerHTML = "";
 
-  cases.forEach((c, index) => {
-    const row = `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${c.title}</td>
-        <td>${c.status}</td>
-        <td>${c.description}</td>
-        <td>
-          <button class="btn btn-sm btn-danger" onclick="deleteCase(${index})">🗑️</button>
-        </td>
-      </tr>
-    `;
-    tbody.innerHTML += row;
-  });
+    casos.forEach((caso, index) => {
+        const fila = document.createElement("tr");
+
+        fila.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${caso.titulo}</td>
+            <td>${caso.estado}</td>
+            <td><pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">${caso.descripcion}</pre></td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="eliminarCaso(${index})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+
+        tbody.appendChild(fila);
+    });
 }
 
-// Eliminar caso
-function deleteCase(index) {
-  const cases = getCases();
-  cases.splice(index, 1);
-  saveCases(cases);
-  renderCases();
-}
+// Agregar un caso nuevo
+document.querySelector("#form-casos").addEventListener("submit", function (e) {
+    e.preventDefault();
 
-// Manejar formulario
-document.querySelector("#caseForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+    const titulo = document.querySelector("#titulo").value;
+    const estado = document.querySelector("#estado").value;
+    const descripcion = document.querySelector("#descripcion").value;
 
-  const title = document.querySelector("#title").value;
-  const status = document.querySelector("#status").value;
-  const description = document.querySelector("#description").value;
+    const casos = obtenerCasos();
+    casos.push({ titulo, estado, descripcion });
+    guardarCasos(casos);
 
-  const newCase = { title, status, description };
-
-  const cases = getCases();
-  cases.push(newCase);
-  saveCases(cases);
-
-  renderCases();
-  this.reset();
+    this.reset();
+    renderizarCasos();
 });
 
-// Inicializar
-renderCases();
+// Eliminar caso por índice
+function eliminarCaso(index) {
+    const casos = obtenerCasos();
+    casos.splice(index, 1);
+    guardarCasos(casos);
+    renderizarCasos();
+}
+
+// Render inicial al cargar la página
+document.addEventListener("DOMContentLoaded", renderizarCasos);
+
