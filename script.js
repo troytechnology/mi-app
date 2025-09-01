@@ -1,108 +1,50 @@
-let projects = JSON.parse(localStorage.getItem("projects")) || {};
+let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
-function saveProjects() {
-  localStorage.setItem("projects", JSON.stringify(projects));
-}
+const projectNameInput = document.getElementById("projectName");
+const caseTitleInput = document.getElementById("caseTitle");
+const caseDescriptionInput = document.getElementById("caseDescription");
+const projectList = document.getElementById("projectList");
+const projectFilter = document.getElementById("projectFilter");
 
-function renderProjects(filter = "all") {
-  const list = document.getElementById("projectsList");
-  list.innerHTML = "";
-
-  Object.keys(projects).forEach(project => {
-    if (filter !== "all" && filter !== project) return;
-
-    const projectDiv = document.createElement("div");
-    projectDiv.classList.add("project");
-    projectDiv.innerHTML = `
-      <h3>Proyecto: ${project} 
-        <button onclick="deleteProject('${project}')">🗑️</button>
-      </h3>
-    `;
-
-    projects[project].forEach((c, index) => {
-      const caseDiv = document.createElement("div");
-      caseDiv.classList.add("case");
-      caseDiv.innerHTML = `
-        <p><strong>${c.title}</strong>: ${c.description}</p>
-        <button onclick="editCase('${project}', ${index})">✏️ Editar</button>
-        <button onclick="deleteCase('${project}', ${index})">🗑️ Eliminar</button>
-      `;
-      projectDiv.appendChild(caseDiv);
-    });
-
-    list.appendChild(projectDiv);
-  });
-}
+document.getElementById("addCase").addEventListener("click", addCase);
+document.getElementById("deleteAll").addEventListener("click", deleteAll);
+document.getElementById("exportJSON").addEventListener("click", exportJSON);
+document.getElementById("importJSON").addEventListener("click", () => document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change", importJSON);
+document.getElementById("viewAll").addEventListener("click", renderProjects);
 
 function addCase() {
-  const projectName = document.getElementById("projectName").value.trim();
-  const caseTitle = document.getElementById("caseTitle").value.trim();
-  const caseDescription = document.getElementById("caseDescription").value.trim();
+  const projectName = projectNameInput.value.trim();
+  const caseTitle = caseTitleInput.value.trim();
+  const caseDescription = caseDescriptionInput.value.trim();
 
-  if (!projectName || !caseTitle) return alert("Proyecto y título son obligatorios");
+  if (!projectName || !caseTitle || !caseDescription) return alert("Completa todos los campos");
 
-  if (!projects[projectName]) projects[projectName] = [];
-  projects[projectName].push({ title: caseTitle, description: caseDescription });
-
-  saveProjects();
-  updateProjectFilter();
-  renderProjects(document.getElementById("projectFilter").value);
-
-  document.getElementById("caseTitle").value = "";
-  document.getElementById("caseDescription").value = "";
-}
-
-function deleteCase(project, index) {
-  projects[project].splice(index, 1);
-  if (projects[project].length === 0) delete projects[project];
-  saveProjects();
-  updateProjectFilter();
-  renderProjects(document.getElementById("projectFilter").value);
-}
-
-function editCase(project, index) {
-  const c = projects[project][index];
-  document.getElementById("projectName").value = project;
-  document.getElementById("caseTitle").value = c.title;
-  document.getElementById("caseDescription").value = c.description;
-
-  deleteCase(project, index);
-}
-
-function deleteProject(project) {
-  if (confirm(`¿Eliminar el proyecto "${project}" completo?`)) {
-    delete projects[project];
-    saveProjects();
-    updateProjectFilter();
-    renderProjects(document.getElementById("projectFilter").value);
+  let project = projects.find(p => p.name === projectName);
+  if (!project) {
+    project = { name: projectName, cases: [] };
+    projects.push(project);
   }
+
+  project.cases.push({ title: caseTitle, description: caseDescription });
+  saveProjects();
+  clearInputs();
+  renderProjects();
 }
 
-function clearAll() {
-  if (confirm("¿Seguro que deseas eliminar todo?")) {
-    projects = {};
+function deleteAll() {
+  if (confirm("¿Seguro que deseas eliminar todos los proyectos?")) {
+    projects = [];
     saveProjects();
     renderProjects();
-    updateProjectFilter();
   }
-}
-
-function updateProjectFilter() {
-  const filter = document.getElementById("projectFilter");
-  filter.innerHTML = `<option value="all">Todos los proyectos</option>`;
-  Object.keys(projects).forEach(p => {
-    const option = document.createElement("option");
-    option.value = p;
-    option.textContent = p;
-    filter.appendChild(option);
-  });
 }
 
 function exportJSON() {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
   const dlAnchor = document.createElement("a");
   dlAnchor.setAttribute("href", dataStr);
-  dlAnchor.setAttribute("download", "proyectos.json");
+  dlAnchor.setAttribute("download", "projects.json");
   dlAnchor.click();
 }
 
@@ -111,31 +53,69 @@ function importJSON(event) {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = e => {
     try {
       projects = JSON.parse(e.target.result);
       saveProjects();
-      updateProjectFilter();
       renderProjects();
-    } catch (err) {
-      alert("Archivo JSON inválido");
+    } catch {
+      alert("Archivo inválido");
     }
   };
   reader.readAsText(file);
 }
 
-// Eventos
-document.getElementById("addCaseBtn").addEventListener("click", addCase);
-document.getElementById("clearAllBtn").addEventListener("click", clearAll);
-document.getElementById("exportBtn").addEventListener("click", exportJSON);
-document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importInput").click());
-document.getElementById("importInput").addEventListener("change", importJSON);
-document.getElementById("projectFilter").addEventListener("change", e => renderProjects(e.target.value));
-document.getElementById("showAllBtn").addEventListener("click", () => renderProjects("all"));
+function saveProjects() {
+  localStorage.setItem("projects", JSON.stringify(projects));
+}
 
-// Inicializar
-updateProjectFilter();
+function clearInputs() {
+  projectNameInput.value = "";
+  caseTitleInput.value = "";
+  caseDescriptionInput.value = "";
+}
+
+function renderProjects() {
+  projectList.innerHTML = "";
+  projectFilter.innerHTML = '<option value="">Todos los proyectos</option>';
+
+  projects.forEach(project => {
+    const option = document.createElement("option");
+    option.value = project.name;
+    option.textContent = project.name;
+    projectFilter.appendChild(option);
+
+    if (projectFilter.value && projectFilter.value !== project.name) return;
+
+    const card = document.createElement("div");
+    card.className = "card p-3";
+    card.innerHTML = `<h5>Proyecto: ${project.name}</h5>`;
+
+    project.cases.forEach((c, i) => {
+      const caseDiv = document.createElement("div");
+      caseDiv.className = "mt-2";
+      caseDiv.innerHTML = `
+        <strong>${c.title}:</strong> ${c.description}
+        <div class="mt-1">
+          <button class="btn btn-warning btn-sm me-1">Editar</button>
+          <button class="btn btn-danger btn-sm">Eliminar</button>
+        </div>
+      `;
+      caseDiv.querySelector(".btn-danger").addEventListener("click", () => {
+        project.cases.splice(i, 1);
+        saveProjects();
+        renderProjects();
+      });
+      card.appendChild(caseDiv);
+    });
+
+    projectList.appendChild(card);
+  });
+}
+
+// Render inicial
 renderProjects();
+
 
 
 
