@@ -48,8 +48,8 @@ function renderProjects(filter = "all") {
         <div class="case-header" onclick="toggleCase(this)">
           <strong>${caso.title}</strong>
           <div>
-            <button class="btn btn-warning btn-sm" onclick="editCase('${proj}', ${index})">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteCase('${proj}', ${index})">Eliminar</button>
+            <button class="btn btn-warning btn-sm" onclick="event.stopPropagation(); editCase('${proj}', ${index})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteCase('${proj}', ${index})">Eliminar</button>
           </div>
         </div>
         <div class="case-body"><p>${caso.description}</p></div>
@@ -134,7 +134,7 @@ function editCase(proj, index) {
   document.getElementById("caseTitle").value = caso.title;
   document.getElementById("caseDescription").value = caso.description;
 
-  projects[proj].splice(index, 1); // Lo quito temporalmente
+  projects[proj].splice(index, 1); // Quitar temporalmente
   saveProjects();
   renderProjects();
 }
@@ -153,6 +153,10 @@ document.getElementById("exportJSON").addEventListener("click", () => {
 });
 
 // Importar JSON
+document.getElementById("importBtn").addEventListener("click", () => {
+  document.getElementById("importJSON").click();
+});
+
 document.getElementById("importJSON").addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -192,4 +196,6 @@ document.getElementById("showAll").addEventListener("click", () => {
 // Inicializar
 updateProjectDropdown();
 renderProjects();
+
+
 
