@@ -1,22 +1,20 @@
-# 📋 Gestor de Casos
+# Gestor de Proyectos y Casos
 
-Aplicación web sencilla para registrar y gestionar casos.  
-Todo se guarda en **LocalStorage**, por lo que no requiere backend.  
-Diseñada para ser **responsive** y usable desde el móvil.
+Aplicación web sencilla para gestionar proyectos y casos sin backend, usando **LocalStorage** y permitiendo **importar/exportar JSON**.
 
----
+## Funcionalidades
+- Crear proyectos y agregar casos.
+- Editar y eliminar casos.
+- Eliminar proyectos completos.
+- Exportar toda la información a un archivo JSON.
+- Importar proyectos/casos desde un archivo JSON.
+- Filtros para mostrar un solo proyecto.
 
-## ⚙️ Tecnologías
-- **HTML + CSS + JavaScript**
-- **Bootstrap 5** (para diseño responsive)
-- **LocalStorage** (para almacenamiento en el navegador)
+## Cómo usar
+1. Abre `index.html` en tu navegador.
+2. Crea proyectos y agrega casos.
+3. Usa **Exportar JSON** para descargar tu información.
+4. Usa **Importar JSON** para cargar datos previamente exportados.
 
----
-
-## 🚀 Uso
-1. Abre `index.html` en tu navegador.  
-2. Llena el formulario para **agregar casos**.  
-3. Los casos se mostrarán en la tabla y se guardarán en el navegador.  
-4. Puedes **eliminarlos** con el botón 🗑️.
 
 
