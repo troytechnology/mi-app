@@ -14,11 +14,17 @@
     <!-- Formulario -->
     <div class="card p-3 mb-4">
       <h5>Agregar Proyecto o Caso</h5>
-      <input type="text" id="projectName" class="form-control mb-2" placeholder="Nombre del Proyecto">
+      <input type="text" id="projectName" class="form-control mb-2" placeholder="Nombre del Proyecto (solo si es nuevo)">
+      
+      <!-- Seleccionar proyecto ya existente -->
+      <select id="selectProject" class="form-select mb-2">
+        <option value="">-- Selecciona un proyecto existente --</option>
+      </select>
+
       <input type="text" id="caseTitle" class="form-control mb-2" placeholder="Título del Caso">
       <textarea id="caseDescription" class="form-control mb-3" placeholder="Descripción del Caso"></textarea>
 
-      <!-- Botones -->
+      <!-- Botones alineados -->
       <div class="d-flex flex-wrap gap-2">
         <button id="addCase" class="btn btn-primary btn-sm">Agregar Caso</button>
         <button id="deleteAll" class="btn btn-danger btn-sm">Eliminar Todo</button>
@@ -41,6 +47,7 @@
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
