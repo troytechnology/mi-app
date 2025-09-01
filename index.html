@@ -1,49 +1,54 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestor de Proyectos y Casos</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div class="container mt-4">
-    <h2 class="mb-4">Gestor de Proyectos y Casos</h2>
+<body class="bg-light">
+
+  <div class="container py-4">
+    <h1 class="text-center mb-4">📋 Gestor de Proyectos y Casos</h1>
 
     <!-- Formulario -->
-    <div class="card p-3 mb-4">
-      <h5>Agregar Proyecto o Caso</h5>
-      <input type="text" id="projectName" class="form-control mb-2" placeholder="Nombre del Proyecto (solo si es nuevo)">
-      
-      <select id="existingProject" class="form-control mb-2">
-        <option value="">-- Selecciona un proyecto existente --</option>
-      </select>
-
-      <input type="text" id="caseTitle" class="form-control mb-2" placeholder="Título del Caso">
-      <textarea id="caseDescription" class="form-control mb-2" placeholder="Descripción del Caso"></textarea>
-
-      <!-- Botones -->
-      <div class="d-flex gap-2 mt-2 flex-wrap">
-        <button id="addCase" class="btn btn-primary btn-sm">Agregar Caso</button>
-        <button id="deleteAll" class="btn btn-danger btn-sm">Eliminar Todo</button>
-        <button id="exportJSON" class="btn btn-success btn-sm">Exportar JSON</button>
-
-        <!-- Importar JSON -->
-        <input type="file" id="importJSON" accept=".json" hidden>
-        <button id="importBtn" class="btn btn-secondary btn-sm">Importar JSON</button>
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <input type="text" id="projectName" class="form-control" placeholder="Nombre de nuevo proyecto">
+          </div>
+          <div class="col-md-6">
+            <select id="selectProject" class="form-select">
+              <option value="">-- Selecciona un proyecto existente --</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <input type="text" id="caseTitle" class="form-control" placeholder="Título del caso">
+          </div>
+          <div class="col-md-6">
+            <textarea id="caseDescription" class="form-control" placeholder="Descripción del caso"></textarea>
+          </div>
+        </div>
+        <div class="mt-3 d-flex gap-2 flex-wrap">
+          <button id="addCase" class="btn btn-primary btn-sm">➕ Agregar Caso</button>
+          <button id="deleteAll" class="btn btn-danger btn-sm">🗑️ Eliminar Todo</button>
+          <button id="exportJSON" class="btn btn-success btn-sm">⬇️ Exportar JSON</button>
+          <input type="file" id="importFile" accept=".json" hidden>
+          <button id="importJSON" class="btn btn-secondary btn-sm">⬆️ Importar JSON</button>
+          <button id="viewAll" class="btn btn-dark btn-sm">📂 Ver todos</button>
+        </div>
       </div>
     </div>
 
-    <!-- Lista de proyectos -->
-    <h4>Lista de Proyectos</h4>
-    <div class="d-flex align-items-center gap-2 mb-3">
-      <select id="projectFilter" class="form-select w-auto">
-        <option value="all">Todos los proyectos</option>
-      </select>
-      <button id="showAll" class="btn btn-dark btn-sm">Ver todos</button>
+    <!-- Filtro -->
+    <div class="mb-3">
+      <label for="projectFilter" class="form-label">Filtrar por proyecto:</label>
+      <select id="projectFilter" class="form-select"></select>
     </div>
 
+    <!-- Lista de proyectos -->
     <div id="projectList"></div>
   </div>
 
