@@ -27,30 +27,32 @@ function renderProjects(filter = "Todos") {
     const projectBody = document.createElement("div");
     projectBody.classList.add("card-body");
 
-    projectObj.cases.forEach((caso, caseIndex) => {
-      const accordion = document.createElement("div");
-      accordion.classList.add("accordion", "mb-2");
+    if (Array.isArray(projectObj.cases)) {
+      projectObj.cases.forEach((caso, caseIndex) => {
+        const accordion = document.createElement("div");
+        accordion.classList.add("accordion", "mb-2");
 
-      accordion.innerHTML = `
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="heading-${projectIndex}-${caseIndex}">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectIndex}-${caseIndex}">
-              Caso: ${caso.title}
-            </button>
-          </h2>
-          <div id="collapse-${projectIndex}-${caseIndex}" class="accordion-collapse collapse">
-            <div class="accordion-body">
-              ${caso.description}
-              <div class="mt-2">
-                <button class="btn btn-warning btn-sm edit-case" data-project="${projectIndex}" data-case="${caseIndex}">Editar</button>
-                <button class="btn btn-danger btn-sm delete-case" data-project="${projectIndex}" data-case="${caseIndex}">Eliminar</button>
+        accordion.innerHTML = `
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="heading-${projectIndex}-${caseIndex}">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectIndex}-${caseIndex}">
+                Caso: ${caso.title}
+              </button>
+            </h2>
+            <div id="collapse-${projectIndex}-${caseIndex}" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                ${caso.description}
+                <div class="mt-2">
+                  <button class="btn btn-warning btn-sm edit-case" data-project="${projectIndex}" data-case="${caseIndex}">Editar</button>
+                  <button class="btn btn-danger btn-sm delete-case" data-project="${projectIndex}" data-case="${caseIndex}">Eliminar</button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      `;
-      projectBody.appendChild(accordion);
-    });
+        `;
+        projectBody.appendChild(accordion);
+      });
+    }
 
     projectCard.appendChild(projectBody);
     container.appendChild(projectCard);
@@ -129,7 +131,18 @@ document.getElementById("importFile").addEventListener("change", (e) => {
   reader.onload = (event) => {
     try {
       const imported = JSON.parse(event.target.result);
-      projects = imported;
+
+      // 🔹 Asegurar formato array
+      if (Array.isArray(imported)) {
+        projects = imported;
+      } else {
+        // Convertir de objeto viejo {Proyecto: [casos]} → [{name, cases}]
+        projects = Object.keys(imported).map(name => ({
+          name,
+          cases: imported[name]
+        }));
+      }
+
       saveProjects();
       renderProjects();
       populateProjectSelect();
@@ -195,6 +208,7 @@ function addEventListeners() {
       document.getElementById("caseTitle").value = caso.title;
       document.getElementById("caseDescription").value = caso.description;
 
+      // eliminar temporalmente y luego volver a guardar como editado
       projects[pIndex].cases.splice(cIndex, 1);
       saveProjects();
       renderProjects();
@@ -217,6 +231,7 @@ function addEventListeners() {
 // Inicializar
 populateProjectSelect();
 renderProjects();
+
 
 
 
