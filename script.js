@@ -10,7 +10,7 @@ function renderProjects() {
     const container = document.getElementById("projectsList");
     container.innerHTML = "";
 
-    Object.keys(projects).forEach((project, projectIndex) => {
+    Object.keys(projects).forEach((project) => {
         let projectId = project.replace(/\s+/g, "-");
 
         let casesHTML = projects[project]
@@ -163,6 +163,7 @@ function importJSON(event) {
 
 // Inicializar
 renderProjects();
+
 
 
 
