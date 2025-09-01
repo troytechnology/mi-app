@@ -6,51 +6,46 @@
   <title>Gestor de Casos</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light p-4">
-
-  <div class="container">
+<body class="bg-light">
+  <div class="container py-4">
     <h1 class="mb-4">Gestor de Casos</h1>
 
     <!-- Formulario -->
-    <div class="card p-4 mb-4 shadow">
-      <h3>Agregar Caso</h3>
-      <form id="caseForm">
-        <div class="mb-3">
-          <label for="title" class="form-label">Título del Caso</label>
-          <input type="text" class="form-control" id="title" required>
-        </div>
+    <form id="caseForm" class="card card-body mb-4">
+      <div class="mb-3">
+        <label class="form-label">Proyecto</label>
+        <select id="projectSelect" class="form-select" required></select>
+      </div>
+      <div class="mb-3 d-none" id="newProjectDiv">
+        <label class="form-label">Nuevo Proyecto</label>
+        <input type="text" id="newProject" class="form-control" placeholder="Nombre del nuevo proyecto">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Título del Caso</label>
+        <input type="text" id="title" class="form-control" placeholder="Ej: Análisis de tráfico sospechoso" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Descripción / Análisis</label>
+        <textarea id="description" class="form-control" rows="5" placeholder="Escribe aquí el análisis o descripción del caso"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Agregar Caso</button>
+    </form>
 
-        <div class="mb-3">
-          <label for="projectSelect" class="form-label">Proyecto</label>
-          <select id="projectSelect" class="form-select" required>
-            <option value="" disabled selected>Selecciona un proyecto</option>
-            <option value="nuevo">+ Nuevo Proyecto</option>
-          </select>
-        </div>
-
-        <div class="mb-3 d-none" id="newProjectDiv">
-          <label for="newProject" class="form-label">Nombre del Nuevo Proyecto</label>
-          <input type="text" class="form-control" id="newProject">
-        </div>
-
-        <div class="mb-3">
-          <label for="description" class="form-label">Descripción</label>
-          <textarea class="form-control" id="description" rows="5" required></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Agregar Caso</button>
-      </form>
+    <!-- Botones de control -->
+    <div class="mb-3">
+      <button class="btn btn-danger me-2" onclick="deleteAll()">🗑️ Borrar todo</button>
+      <button class="btn btn-success me-2" onclick="exportData()">⬇️ Exportar JSON</button>
+      <input type="file" id="importFile" class="d-none" accept="application/json" onchange="importData(event)">
+      <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">⬆️ Importar JSON</button>
     </div>
 
-    <!-- Lista de proyectos y casos -->
-    <div class="accordion" id="projectsAccordion">
-      <!-- Aquí se insertan dinámicamente los proyectos y casos -->
-    </div>
+    <!-- Lista de proyectos -->
+    <h2>Lista de Proyectos</h2>
+    <div class="accordion" id="projectsAccordion"></div>
   </div>
 
   <script src="script.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
 
