@@ -65,14 +65,14 @@ function renderProjects() {
   });
 }
 
-// Manejar selección de proyecto
+// Mostrar campo para nuevo proyecto si se selecciona
 projectSelect.addEventListener("change", () => {
   if (projectSelect.value === "nuevo") {
     newProjectDiv.classList.remove("d-none");
-    newProjectInput.required = true;
+    newProjectInput.focus();
   } else {
     newProjectDiv.classList.add("d-none");
-    newProjectInput.required = false;
+    newProjectInput.value = "";
   }
 });
 
@@ -84,13 +84,22 @@ form.addEventListener("submit", (e) => {
   const description = document.getElementById("description").value.trim();
   let project = projectSelect.value;
 
+  // Validar proyecto
   if (project === "nuevo") {
     project = newProjectInput.value.trim();
     if (!project) {
       alert("Debes ingresar un nombre para el nuevo proyecto.");
+      newProjectInput.focus();
       return;
     }
-    data[project] = data[project] || [];
+    if (!data[project]) {
+      data[project] = [];
+    }
+  }
+
+  if (!project || project === "") {
+    alert("Debes seleccionar un proyecto o crear uno nuevo.");
+    return;
   }
 
   // Guardar caso
@@ -109,6 +118,8 @@ form.addEventListener("submit", (e) => {
 // Inicializar
 updateProjectSelect();
 renderProjects();
+
+
 
 
 
