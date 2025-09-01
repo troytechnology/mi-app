@@ -24,6 +24,7 @@ body {
 .case-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   cursor: pointer;
 }
 
@@ -31,4 +32,5 @@ body {
   display: none;
   padding-top: 5px;
 }
+
 
