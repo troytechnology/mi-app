@@ -1,11 +1,9 @@
 let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
-// Guardar en localStorage
 function saveProjects() {
   localStorage.setItem("projects", JSON.stringify(projects));
 }
 
-// Renderizar proyectos
 function renderProjects(filter = "Todos") {
   const container = document.getElementById("projectList");
   container.innerHTML = "";
@@ -61,7 +59,6 @@ function renderProjects(filter = "Todos") {
   addEventListeners();
 }
 
-// Rellenar select de proyectos
 function populateProjectSelect() {
   const select = document.getElementById("selectProject");
   const filter = document.getElementById("projectFilter");
@@ -82,7 +79,7 @@ function populateProjectSelect() {
   });
 }
 
-// Agregar caso
+// ➕ Agregar caso
 document.getElementById("addCase").addEventListener("click", () => {
   const newProjectName = document.getElementById("projectName").value.trim();
   const selectedProject = document.getElementById("selectProject").value;
@@ -118,7 +115,7 @@ document.getElementById("addCase").addEventListener("click", () => {
   document.getElementById("selectProject").value = "";
 });
 
-// Importar JSON
+// 📥 Importar JSON
 document.getElementById("importJSON").addEventListener("click", () => {
   document.getElementById("importFile").click();
 });
@@ -132,11 +129,9 @@ document.getElementById("importFile").addEventListener("change", (e) => {
     try {
       const imported = JSON.parse(event.target.result);
 
-      // 🔹 Asegurar formato array
       if (Array.isArray(imported)) {
         projects = imported;
       } else {
-        // Convertir de objeto viejo {Proyecto: [casos]} → [{name, cases}]
         projects = Object.keys(imported).map(name => ({
           name,
           cases: imported[name]
@@ -154,7 +149,7 @@ document.getElementById("importFile").addEventListener("change", (e) => {
   reader.readAsText(file);
 });
 
-// Exportar JSON
+// 📤 Exportar JSON
 document.getElementById("exportJSON").addEventListener("click", () => {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
   const dlAnchor = document.createElement("a");
@@ -163,7 +158,7 @@ document.getElementById("exportJSON").addEventListener("click", () => {
   dlAnchor.click();
 });
 
-// Eliminar todo
+// 🗑 Eliminar todo
 document.getElementById("deleteAll").addEventListener("click", () => {
   if (confirm("¿Seguro que deseas eliminar todo?")) {
     projects = [];
@@ -173,18 +168,18 @@ document.getElementById("deleteAll").addEventListener("click", () => {
   }
 });
 
-// Ver todos
+// 👀 Ver todos
 document.getElementById("viewAll").addEventListener("click", () => {
   document.getElementById("projectFilter").value = "Todos";
   renderProjects();
 });
 
-// Cambio de filtro
+// 🔍 Filtro por proyecto
 document.getElementById("projectFilter").addEventListener("change", (e) => {
   renderProjects(e.target.value);
 });
 
-// Editar / Eliminar casos y proyectos
+// 🎯 Eventos dinámicos
 function addEventListeners() {
   document.querySelectorAll(".delete-case").forEach(btn => {
     btn.addEventListener("click", (e) => {
@@ -208,7 +203,6 @@ function addEventListeners() {
       document.getElementById("caseTitle").value = caso.title;
       document.getElementById("caseDescription").value = caso.description;
 
-      // eliminar temporalmente y luego volver a guardar como editado
       projects[pIndex].cases.splice(cIndex, 1);
       saveProjects();
       renderProjects();
@@ -228,9 +222,10 @@ function addEventListeners() {
   });
 }
 
-// Inicializar
+// 🚀 Inicializar
 populateProjectSelect();
 renderProjects();
+
 
 
 
