@@ -1,9 +1,15 @@
 body {
+  font-family: Arial, sans-serif;
   background-color: #f8f9fa;
 }
 
 .card {
   border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+#projectList .card {
+  margin-bottom: 10px;
 }
 
 .project-card {
@@ -32,5 +38,6 @@ body {
   display: none;
   padding-top: 5px;
 }
+
 
 
