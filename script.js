@@ -1,6 +1,10 @@
 // Obtener datos guardados en localStorage
 let data = JSON.parse(localStorage.getItem("caseManagerData")) || {};
 
+// Estado para edición
+let editingProject = null;
+let editingCaseIndex = null;
+
 // Referencias a elementos HTML
 const projectSelect = document.getElementById("projectSelect");
 const caseTitle = document.getElementById("caseTitle");
@@ -37,6 +41,7 @@ function renderProjects() {
                   <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectId}-${caseIndex}">
                     Caso: ${c.title}
                   </button>
+                  <button class="btn btn-outline-primary btn-sm ms-2" onclick="editCase('${project}', ${caseIndex})">✏️</button>
                   <button class="btn btn-outline-danger btn-sm ms-2" onclick="deleteCase('${project}', ${caseIndex})">🗑️</button>
                 </h2>
                 <div id="collapse-${projectId}-${caseIndex}" class="accordion-collapse collapse" data-bs-parent="#cases-${projectId}">
@@ -66,25 +71,47 @@ function updateProjectSelect() {
   });
 }
 
-// Agregar caso
+// Agregar o editar caso
 addCaseBtn.addEventListener("click", () => {
   const project = projectSelect.value;
   const title = caseTitle.value.trim();
   const description = caseDescription.value.trim();
 
   if (!project || !title || !description) {
-    alert("Completa todos los campos antes de agregar un caso");
+    alert("Completa todos los campos antes de continuar");
     return;
   }
 
-  if (!data[project]) data[project] = [];
-  data[project].push({ title, description });
+  if (editingProject !== null && editingCaseIndex !== null) {
+    // Guardar cambios en caso existente
+    data[editingProject][editingCaseIndex] = { title, description };
+    editingProject = null;
+    editingCaseIndex = null;
+    addCaseBtn.textContent = "Agregar Caso";
+  } else {
+    // Nuevo caso
+    if (!data[project]) data[project] = [];
+    data[project].push({ title, description });
+  }
+
   saveData();
   renderProjects();
 
   caseTitle.value = "";
   caseDescription.value = "";
 });
+
+// Editar caso
+function editCase(project, caseIndex) {
+  const caso = data[project][caseIndex];
+  projectSelect.value = project;
+  caseTitle.value = caso.title;
+  caseDescription.value = caso.description;
+
+  editingProject = project;
+  editingCaseIndex = caseIndex;
+  addCaseBtn.textContent = "Guardar Cambios";
+}
 
 // Eliminar proyecto
 function deleteProject(project) {
@@ -143,6 +170,7 @@ function importJSON(event) {
 
 // Inicializar
 renderProjects();
+
 
 
 
