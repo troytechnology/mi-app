@@ -13,6 +13,12 @@ function renderProjects() {
   list.innerHTML = "";
   select.innerHTML = "";
 
+  // Opción por defecto en el <select>
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Selecciona un proyecto";
+  select.appendChild(defaultOption);
+
   projects.forEach((project, pIndex) => {
     // Opción en el select
     const option = document.createElement("option");
@@ -140,6 +146,7 @@ function importJSON(event) {
 
 // Inicializar
 renderProjects();
+
 
 
 
