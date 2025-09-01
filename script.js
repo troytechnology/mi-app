@@ -1,64 +1,60 @@
 let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
+// Guardar en LocalStorage
 function saveProjects() {
   localStorage.setItem("projects", JSON.stringify(projects));
 }
 
+// Renderizar proyectos
 function renderProjects(filter = "Todos") {
-  const container = document.getElementById("projectList");
-  container.innerHTML = "";
+  const projectList = document.getElementById("projectList");
+  projectList.innerHTML = "";
 
-  let filteredProjects = filter === "Todos" ? projects : projects.filter(p => p.name === filter);
+  let filtered = filter === "Todos" ? projects : projects.filter(p => p.name === filter);
 
-  filteredProjects.forEach((projectObj, projectIndex) => {
+  filtered.forEach((project, pIndex) => {
     const projectCard = document.createElement("div");
     projectCard.classList.add("card", "mb-3");
 
     const projectHeader = document.createElement("div");
-    projectHeader.classList.add("card-header", "fw-bold", "d-flex", "justify-content-between");
-    projectHeader.innerHTML = `
-      <span>Proyecto: ${projectObj.name}</span>
-      <button class="btn btn-danger btn-sm delete-project" data-index="${projectIndex}">Eliminar Proyecto</button>
-    `;
+    projectHeader.classList.add("card-header", "fw-bold");
+    projectHeader.textContent = `Proyecto: ${project.name}`;
     projectCard.appendChild(projectHeader);
 
     const projectBody = document.createElement("div");
     projectBody.classList.add("card-body");
 
-    if (Array.isArray(projectObj.cases)) {
-      projectObj.cases.forEach((caso, caseIndex) => {
-        const accordion = document.createElement("div");
-        accordion.classList.add("accordion", "mb-2");
+    project.cases.forEach((c, cIndex) => {
+      const accordion = document.createElement("div");
+      accordion.classList.add("accordion", "mb-2");
 
-        accordion.innerHTML = `
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="heading-${projectIndex}-${caseIndex}">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectIndex}-${caseIndex}">
-                Caso: ${caso.title}
-              </button>
-            </h2>
-            <div id="collapse-${projectIndex}-${caseIndex}" class="accordion-collapse collapse">
-              <div class="accordion-body">
-                ${caso.description}
-                <div class="mt-2">
-                  <button class="btn btn-warning btn-sm edit-case" data-project="${projectIndex}" data-case="${caseIndex}">Editar</button>
-                  <button class="btn btn-danger btn-sm delete-case" data-project="${projectIndex}" data-case="${caseIndex}">Eliminar</button>
-                </div>
+      accordion.innerHTML = `
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="heading-${pIndex}-${cIndex}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${pIndex}-${cIndex}">
+              Caso: ${c.title}
+            </button>
+          </h2>
+          <div id="collapse-${pIndex}-${cIndex}" class="accordion-collapse collapse">
+            <div class="accordion-body">
+              ${c.description}
+              <div class="mt-2">
+                <button class="btn btn-warning btn-sm">Editar</button>
+                <button class="btn btn-danger btn-sm">Eliminar</button>
               </div>
             </div>
           </div>
-        `;
-        projectBody.appendChild(accordion);
-      });
-    }
+        </div>
+      `;
+      projectBody.appendChild(accordion);
+    });
 
     projectCard.appendChild(projectBody);
-    container.appendChild(projectCard);
+    projectList.appendChild(projectCard);
   });
-
-  addEventListeners();
 }
 
+// Llenar select de proyectos
 function populateProjectSelect() {
   const select = document.getElementById("selectProject");
   const filter = document.getElementById("projectFilter");
@@ -104,49 +100,14 @@ document.getElementById("addCase").addEventListener("click", () => {
   }
 
   projectObj.cases.push({ title: caseTitle, description: caseDesc });
-
   saveProjects();
   renderProjects();
   populateProjectSelect();
 
-  document.getElementById("caseTitle").value = "";
-  document.getElementById("caseDescription").value = "";
   document.getElementById("projectName").value = "";
   document.getElementById("selectProject").value = "";
-});
-
-// 📥 Importar JSON
-document.getElementById("importJSON").addEventListener("click", () => {
-  document.getElementById("importFile").click();
-});
-
-document.getElementById("importFile").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    try {
-      const imported = JSON.parse(event.target.result);
-
-      if (Array.isArray(imported)) {
-        projects = imported;
-      } else {
-        projects = Object.keys(imported).map(name => ({
-          name,
-          cases: imported[name]
-        }));
-      }
-
-      saveProjects();
-      renderProjects();
-      populateProjectSelect();
-      alert("✅ JSON importado correctamente");
-    } catch (err) {
-      alert("Archivo inválido: " + err.message);
-    }
-  };
-  reader.readAsText(file);
+  document.getElementById("caseTitle").value = "";
+  document.getElementById("caseDescription").value = "";
 });
 
 // 📤 Exportar JSON
@@ -156,6 +117,35 @@ document.getElementById("exportJSON").addEventListener("click", () => {
   dlAnchor.setAttribute("href", dataStr);
   dlAnchor.setAttribute("download", "projects.json");
   dlAnchor.click();
+});
+
+// 📥 Importar JSON
+document.getElementById("importJSON").addEventListener("click", () => {
+  document.getElementById("importFile").click();
+});
+document.getElementById("importFile").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const imported = JSON.parse(event.target.result);
+      if (Array.isArray(imported)) {
+        projects = imported;
+      } else {
+        projects = Object.keys(imported).map(name => ({
+          name,
+          cases: imported[name]
+        }));
+      }
+      saveProjects();
+      renderProjects();
+      populateProjectSelect();
+    } catch (err) {
+      alert("Archivo inválido: " + err.message);
+    }
+  };
+  reader.readAsText(file);
 });
 
 // 🗑 Eliminar todo
@@ -168,63 +158,20 @@ document.getElementById("deleteAll").addEventListener("click", () => {
   }
 });
 
-// 👀 Ver todos
+// 🔍 Filtro
+document.getElementById("projectFilter").addEventListener("change", (e) => {
+  renderProjects(e.target.value);
+});
 document.getElementById("viewAll").addEventListener("click", () => {
   document.getElementById("projectFilter").value = "Todos";
   renderProjects();
 });
 
-// 🔍 Filtro por proyecto
-document.getElementById("projectFilter").addEventListener("change", (e) => {
-  renderProjects(e.target.value);
-});
-
-// 🎯 Eventos dinámicos
-function addEventListeners() {
-  document.querySelectorAll(".delete-case").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      const pIndex = e.target.getAttribute("data-project");
-      const cIndex = e.target.getAttribute("data-case");
-      if (confirm("¿Eliminar este caso?")) {
-        projects[pIndex].cases.splice(cIndex, 1);
-        saveProjects();
-        renderProjects();
-      }
-    });
-  });
-
-  document.querySelectorAll(".edit-case").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      const pIndex = e.target.getAttribute("data-project");
-      const cIndex = e.target.getAttribute("data-case");
-      const caso = projects[pIndex].cases[cIndex];
-
-      document.getElementById("projectName").value = projects[pIndex].name;
-      document.getElementById("caseTitle").value = caso.title;
-      document.getElementById("caseDescription").value = caso.description;
-
-      projects[pIndex].cases.splice(cIndex, 1);
-      saveProjects();
-      renderProjects();
-    });
-  });
-
-  document.querySelectorAll(".delete-project").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      const index = e.target.getAttribute("data-index");
-      if (confirm("¿Eliminar este proyecto completo?")) {
-        projects.splice(index, 1);
-        saveProjects();
-        renderProjects();
-        populateProjectSelect();
-      }
-    });
-  });
-}
-
 // 🚀 Inicializar
 populateProjectSelect();
 renderProjects();
+
+
 
 
 
