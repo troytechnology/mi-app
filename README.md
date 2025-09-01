@@ -1,20 +1,21 @@
-# 📋 Gestor de Casos
+# Gestor de Casos
 
-Aplicación web sencilla para registrar y gestionar casos.  
-Todo se guarda en **LocalStorage**, por lo que no requiere backend.  
-Diseñada para ser **responsive** y usable desde el móvil.
+Aplicación web sencilla para gestionar proyectos y casos de seguridad.  
+- Permite **crear proyectos** y **agregar casos dentro de cada proyecto**.  
+- Cada proyecto puede desplegar sus casos en un menú.  
+- Se pueden **editar** y **eliminar casos individualmente**.  
+- Se pueden **eliminar proyectos completos**.  
+- Los datos se guardan en **LocalStorage**, por lo que persisten aunque cierres el navegador.  
 
----
+## 🚀 Tecnologías
+- HTML
+- CSS
+- JavaScript
+- Bootstrap (para estilos)
 
-## ⚙️ Tecnologías
-- **HTML + CSS + JavaScript**
-- **Bootstrap 5** (para diseño responsive)
-- **LocalStorage** (para almacenamiento en el navegador)
+## 📦 Despliegue
+Puedes publicarlo en GitHub Pages:
+1. Sube estos archivos a tu repositorio.
+2. Activa GitHub Pages desde **Settings → Pages**.
+3. Accede con la URL que GitHub te genere.
 
----
-
-## 🚀 Uso
-1. Abre `index.html` en tu navegador.  
-2. Llena el formulario para **agregar casos**.  
-3. Los casos se mostrarán en la tabla y se guardarán en el navegador.  
-4. Puedes **eliminarlos** con el botón 🗑️.
