@@ -30,7 +30,7 @@
         <button id="exportJSON" class="btn btn-success btn-sm">Exportar JSON</button>
 
         <!-- Importar JSON -->
-        <input type="file" id="importJSON" accept="application/json" style="display:none;" />
+        <input type="file" id="importJSON" accept=".json" hidden>
         <button id="importBtn" class="btn btn-secondary btn-sm">Importar JSON</button>
       </div>
     </div>
@@ -42,7 +42,14 @@
         <option value="all">Todos los proyectos</option>
       </select>
       <button id="showAll" class="btn btn-dark btn-sm">Ver todos</button>
-    </d
+    </div>
+
+    <div id="projectList"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
 
 
 
