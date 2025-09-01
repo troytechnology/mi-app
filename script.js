@@ -1,164 +1,141 @@
-let projects = JSON.parse(localStorage.getItem("projects")) || {};
+let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
 // Guardar en localStorage
-function saveProjects() {
-    localStorage.setItem("projects", JSON.stringify(projects));
+function saveData() {
+  localStorage.setItem("projects", JSON.stringify(projects));
 }
 
-// Renderizar lista de proyectos y casos
+// Renderizar proyectos
 function renderProjects() {
-    const container = document.getElementById("projectsList");
-    container.innerHTML = "";
+  const list = document.getElementById("projectsList");
+  const select = document.getElementById("projectSelect");
 
-    Object.keys(projects).forEach((project) => {
-        let projectId = project.replace(/\s+/g, "-");
+  list.innerHTML = "";
+  select.innerHTML = "";
 
-        let casesHTML = projects[project]
-            .map((c, caseIndex) => `
-                <div class="accordion-item">
-                    <h2 class="accordion-header d-flex align-items-center" id="heading-${projectId}-${caseIndex}">
-                        <button class="accordion-button collapsed flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectId}-${caseIndex}">
-                            Caso: ${c.title}
-                        </button>
-                        <div class="ms-2">
-                            <button class="btn btn-outline-primary btn-sm" onclick="editCase('${project}', ${caseIndex})">✏️</button>
-                            <button class="btn btn-outline-danger btn-sm ms-1" onclick="deleteCase('${project}', ${caseIndex})">🗑️</button>
-                        </div>
-                    </h2>
-                    <div id="collapse-${projectId}-${caseIndex}" class="accordion-collapse collapse">
-                        <div class="accordion-body"><pre>${c.description}</pre></div>
-                    </div>
-                </div>
-            `)
-            .join("");
+  projects.forEach((project, pIndex) => {
+    // Opción en el select
+    const option = document.createElement("option");
+    option.value = pIndex;
+    option.textContent = project.name;
+    select.appendChild(option);
 
-        container.innerHTML += `
-            <div class="accordion mb-3">
-                <h5>
-                    Proyecto: ${project}
-                    <button class="btn btn-outline-danger btn-sm ms-2" onclick="deleteProject('${project}')">🗑️</button>
-                </h5>
-                ${casesHTML || "<p class='text-muted'>Sin casos aún.</p>"}
+    // Card de proyecto
+    const projectCard = document.createElement("div");
+    projectCard.className = "card mb-3";
+    projectCard.innerHTML = `
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Proyecto: ${project.name}</strong>
+        <button class="btn btn-sm btn-danger" onclick="deleteProject(${pIndex})">🗑️</button>
+      </div>
+      <div class="card-body">
+        ${project.cases.map((c, cIndex) => `
+          <div class="card mb-2">
+            <div class="card-body">
+              <h5 class="card-title">Caso: ${c.title}</h5>
+              <p class="card-text">${c.description}</p>
+              <button class="btn btn-sm btn-warning" onclick="editCase(${pIndex}, ${cIndex})">✏️ Editar</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteCase(${pIndex}, ${cIndex})">🗑️ Borrar</button>
             </div>
-        `;
-    });
-
-    updateProjectDropdown();
-}
-
-// Actualizar selector de proyectos
-function updateProjectDropdown() {
-    const select = document.getElementById("projectSelect");
-    select.innerHTML = `<option value="">Selecciona un proyecto</option>`;
-    Object.keys(projects).forEach(project => {
-        let opt = document.createElement("option");
-        opt.value = project;
-        opt.textContent = project;
-        select.appendChild(opt);
-    });
+          </div>
+        `).join("")}
+      </div>
+    `;
+    list.appendChild(projectCard);
+  });
 }
 
 // Agregar proyecto
 function addProject() {
-    let name = prompt("Nombre del nuevo proyecto:");
-    if (name && !projects[name]) {
-        projects[name] = [];
-        saveProjects();
-        renderProjects();
-    } else if (projects[name]) {
-        alert("El proyecto ya existe.");
-    }
+  const name = prompt("Nombre del nuevo proyecto:");
+  if (name) {
+    projects.push({ name, cases: [] });
+    saveData();
+    renderProjects();
+  }
 }
 
 // Agregar caso
 document.getElementById("caseForm").addEventListener("submit", function (e) {
-    e.preventDefault();
+  e.preventDefault();
+  const pIndex = document.getElementById("projectSelect").value;
+  const title = document.getElementById("caseTitle").value;
+  const description = document.getElementById("caseDescription").value;
 
-    let project = document.getElementById("projectSelect").value;
-    let title = document.getElementById("caseTitle").value.trim();
-    let description = document.getElementById("caseDescription").value.trim();
+  if (pIndex === "" || title.trim() === "") {
+    alert("Debes seleccionar un proyecto y escribir un título.");
+    return;
+  }
 
-    if (!project) return alert("Selecciona un proyecto");
-    if (!title || !description) return alert("Completa todos los campos");
-
-    projects[project].push({ title, description });
-    saveProjects();
-    renderProjects();
-
-    this.reset();
+  projects[pIndex].cases.push({ title, description });
+  saveData();
+  renderProjects();
+  e.target.reset();
 });
 
 // Editar caso
-function editCase(project, index) {
-    let caso = projects[project][index];
+function editCase(pIndex, cIndex) {
+  const caseData = projects[pIndex].cases[cIndex];
+  const newTitle = prompt("Nuevo título:", caseData.title);
+  const newDescription = prompt("Nueva descripción:", caseData.description);
 
-    let nuevoTitulo = prompt("Editar título:", caso.title);
-    if (nuevoTitulo === null) return;
-
-    let nuevaDescripcion = prompt("Editar descripción:", caso.description);
-    if (nuevaDescripcion === null) return;
-
-    projects[project][index] = {
-        title: nuevoTitulo.trim(),
-        description: nuevaDescripcion.trim()
-    };
-
-    saveProjects();
+  if (newTitle !== null && newDescription !== null) {
+    projects[pIndex].cases[cIndex] = { title: newTitle, description: newDescription };
+    saveData();
     renderProjects();
+  }
 }
 
 // Borrar caso
-function deleteCase(project, index) {
-    if (confirm("¿Seguro que deseas borrar este caso?")) {
-        projects[project].splice(index, 1);
-        saveProjects();
-        renderProjects();
-    }
+function deleteCase(pIndex, cIndex) {
+  projects[pIndex].cases.splice(cIndex, 1);
+  saveData();
+  renderProjects();
 }
 
 // Borrar proyecto
-function deleteProject(project) {
-    if (confirm(`¿Seguro que deseas eliminar el proyecto "${project}" con todos sus casos?`)) {
-        delete projects[project];
-        saveProjects();
-        renderProjects();
-    }
+function deleteProject(pIndex) {
+  projects.splice(pIndex, 1);
+  saveData();
+  renderProjects();
 }
 
 // Borrar todo
 function deleteAll() {
-    if (confirm("¿Seguro que deseas borrar todos los proyectos y casos?")) {
-        projects = {};
-        saveProjects();
-        renderProjects();
-    }
+  if (confirm("¿Seguro que deseas borrar todo?")) {
+    projects = [];
+    saveData();
+    renderProjects();
+  }
 }
 
-// Exportar JSON
+// Exportar
 function exportJSON() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
-    const dlAnchor = document.createElement("a");
-    dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", "proyectos.json");
-    dlAnchor.click();
+  const data = JSON.stringify(projects, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "proyectos.json";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-// Importar JSON
+// Importar
 function importJSON(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        try {
-            projects = JSON.parse(e.target.result);
-            saveProjects();
-            renderProjects();
-        } catch {
-            alert("Archivo JSON inválido");
-        }
-    };
-    reader.readAsText(file);
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      projects = JSON.parse(e.target.result);
+      saveData();
+      renderProjects();
+    } catch {
+      alert("Archivo JSON inválido");
+    }
+  };
+  reader.readAsText(file);
 }
 
 // Inicializar
