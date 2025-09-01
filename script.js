@@ -1,175 +1,169 @@
-// Obtener datos guardados en localStorage
-let data = JSON.parse(localStorage.getItem("caseManagerData")) || {};
-
-// Estado para edición
-let editingProject = null;
-let editingCaseIndex = null;
-
-// Referencias a elementos HTML
-const projectSelect = document.getElementById("projectSelect");
-const caseTitle = document.getElementById("caseTitle");
-const caseDescription = document.getElementById("caseDescription");
-const addCaseBtn = document.getElementById("addCaseBtn");
-const projectsAccordion = document.getElementById("projectsAccordion");
+let projects = JSON.parse(localStorage.getItem("projects")) || {};
 
 // Guardar en localStorage
-function saveData() {
-  localStorage.setItem("caseManagerData", JSON.stringify(data));
+function saveProjects() {
+    localStorage.setItem("projects", JSON.stringify(projects));
 }
 
-// Renderizar proyectos y casos
+// Renderizar lista de proyectos y casos
 function renderProjects() {
-  projectsAccordion.innerHTML = "";
-  Object.entries(data).forEach(([project, cases], projectIndex) => {
-    const projectId = `project-${projectIndex}`;
-    const projectItem = document.createElement("div");
-    projectItem.className = "accordion-item";
+    const container = document.getElementById("projectsList");
+    container.innerHTML = "";
 
-    projectItem.innerHTML = `
-      <h2 class="accordion-header" id="heading-${projectId}">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectId}">
-          Proyecto: ${project}
-        </button>
-        <button class="btn btn-danger btn-sm ms-2" onclick="deleteProject('${project}')">🗑️</button>
-      </h2>
-      <div id="collapse-${projectId}" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
-        <div class="accordion-body">
-          <div class="accordion" id="cases-${projectId}">
-            ${cases.map((c, caseIndex) => `
-              <div class="accordion-item">
-                <h2 class="accordion-header" id="heading-${projectId}-${caseIndex}">
-                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectId}-${caseIndex}">
-                    Caso: ${c.title}
-                  </button>
-                  <button class="btn btn-outline-primary btn-sm ms-2" onclick="editCase('${project}', ${caseIndex})">✏️</button>
-                  <button class="btn btn-outline-danger btn-sm ms-2" onclick="deleteCase('${project}', ${caseIndex})">🗑️</button>
-                </h2>
-                <div id="collapse-${projectId}-${caseIndex}" class="accordion-collapse collapse" data-bs-parent="#cases-${projectId}">
-                  <div class="accordion-body">
-                    <pre style="white-space: pre-wrap;">${c.description}</pre>
-                  </div>
+    Object.keys(projects).forEach((project, projectIndex) => {
+        let projectId = project.replace(/\s+/g, "-");
+
+        let casesHTML = projects[project]
+            .map((c, caseIndex) => `
+                <div class="accordion-item">
+                    <h2 class="accordion-header d-flex align-items-center" id="heading-${projectId}-${caseIndex}">
+                        <button class="accordion-button collapsed flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${projectId}-${caseIndex}">
+                            Caso: ${c.title}
+                        </button>
+                        <div class="ms-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="editCase('${project}', ${caseIndex})">✏️</button>
+                            <button class="btn btn-outline-danger btn-sm ms-1" onclick="deleteCase('${project}', ${caseIndex})">🗑️</button>
+                        </div>
+                    </h2>
+                    <div id="collapse-${projectId}-${caseIndex}" class="accordion-collapse collapse">
+                        <div class="accordion-body"><pre>${c.description}</pre></div>
+                    </div>
                 </div>
-              </div>
-            `).join("")}
-          </div>
-        </div>
-      </div>
-    `;
-    projectsAccordion.appendChild(projectItem);
-  });
-  updateProjectSelect();
+            `)
+            .join("");
+
+        container.innerHTML += `
+            <div class="accordion mb-3">
+                <h5>
+                    Proyecto: ${project}
+                    <button class="btn btn-outline-danger btn-sm ms-2" onclick="deleteProject('${project}')">🗑️</button>
+                </h5>
+                ${casesHTML || "<p class='text-muted'>Sin casos aún.</p>"}
+            </div>
+        `;
+    });
+
+    updateProjectDropdown();
 }
 
 // Actualizar selector de proyectos
-function updateProjectSelect() {
-  projectSelect.innerHTML = `<option value="">Selecciona un proyecto</option>`;
-  Object.keys(data).forEach(project => {
-    const option = document.createElement("option");
-    option.value = project;
-    option.textContent = project;
-    projectSelect.appendChild(option);
-  });
+function updateProjectDropdown() {
+    const select = document.getElementById("projectSelect");
+    select.innerHTML = `<option value="">Selecciona un proyecto</option>`;
+    Object.keys(projects).forEach(project => {
+        let opt = document.createElement("option");
+        opt.value = project;
+        opt.textContent = project;
+        select.appendChild(opt);
+    });
 }
 
-// Agregar o editar caso
-addCaseBtn.addEventListener("click", () => {
-  const project = projectSelect.value;
-  const title = caseTitle.value.trim();
-  const description = caseDescription.value.trim();
+// Agregar proyecto
+function addProject() {
+    let name = prompt("Nombre del nuevo proyecto:");
+    if (name && !projects[name]) {
+        projects[name] = [];
+        saveProjects();
+        renderProjects();
+    } else if (projects[name]) {
+        alert("El proyecto ya existe.");
+    }
+}
 
-  if (!project || !title || !description) {
-    alert("Completa todos los campos antes de continuar");
-    return;
-  }
+// Agregar caso
+document.getElementById("caseForm").addEventListener("submit", function (e) {
+    e.preventDefault();
 
-  if (editingProject !== null && editingCaseIndex !== null) {
-    // Guardar cambios en caso existente
-    data[editingProject][editingCaseIndex] = { title, description };
-    editingProject = null;
-    editingCaseIndex = null;
-    addCaseBtn.textContent = "Agregar Caso";
-  } else {
-    // Nuevo caso
-    if (!data[project]) data[project] = [];
-    data[project].push({ title, description });
-  }
+    let project = document.getElementById("projectSelect").value;
+    let title = document.getElementById("caseTitle").value.trim();
+    let description = document.getElementById("caseDescription").value.trim();
 
-  saveData();
-  renderProjects();
+    if (!project) return alert("Selecciona un proyecto");
+    if (!title || !description) return alert("Completa todos los campos");
 
-  caseTitle.value = "";
-  caseDescription.value = "";
+    projects[project].push({ title, description });
+    saveProjects();
+    renderProjects();
+
+    this.reset();
 });
 
 // Editar caso
-function editCase(project, caseIndex) {
-  const caso = data[project][caseIndex];
-  projectSelect.value = project;
-  caseTitle.value = caso.title;
-  caseDescription.value = caso.description;
+function editCase(project, index) {
+    let caso = projects[project][index];
 
-  editingProject = project;
-  editingCaseIndex = caseIndex;
-  addCaseBtn.textContent = "Guardar Cambios";
+    let nuevoTitulo = prompt("Editar título:", caso.title);
+    if (nuevoTitulo === null) return;
+
+    let nuevaDescripcion = prompt("Editar descripción:", caso.description);
+    if (nuevaDescripcion === null) return;
+
+    projects[project][index] = {
+        title: nuevoTitulo.trim(),
+        description: nuevaDescripcion.trim()
+    };
+
+    saveProjects();
+    renderProjects();
 }
 
-// Eliminar proyecto
+// Borrar caso
+function deleteCase(project, index) {
+    if (confirm("¿Seguro que deseas borrar este caso?")) {
+        projects[project].splice(index, 1);
+        saveProjects();
+        renderProjects();
+    }
+}
+
+// Borrar proyecto
 function deleteProject(project) {
-  if (confirm(`¿Seguro que quieres eliminar el proyecto "${project}"?`)) {
-    delete data[project];
-    saveData();
-    renderProjects();
-  }
-}
-
-// Eliminar caso
-function deleteCase(project, caseIndex) {
-  if (confirm("¿Seguro que quieres eliminar este caso?")) {
-    data[project].splice(caseIndex, 1);
-    saveData();
-    renderProjects();
-  }
+    if (confirm(`¿Seguro que deseas eliminar el proyecto "${project}" con todos sus casos?`)) {
+        delete projects[project];
+        saveProjects();
+        renderProjects();
+    }
 }
 
 // Borrar todo
-function clearAll() {
-  if (confirm("¿Seguro que quieres borrar todo?")) {
-    data = {};
-    saveData();
-    renderProjects();
-  }
+function deleteAll() {
+    if (confirm("¿Seguro que deseas borrar todos los proyectos y casos?")) {
+        projects = {};
+        saveProjects();
+        renderProjects();
+    }
 }
 
 // Exportar JSON
 function exportJSON() {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "proyectos.json";
-  a.click();
-  URL.revokeObjectURL(url);
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
+    const dlAnchor = document.createElement("a");
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", "proyectos.json");
+    dlAnchor.click();
 }
 
 // Importar JSON
 function importJSON(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      data = JSON.parse(e.target.result);
-      saveData();
-      renderProjects();
-    } catch {
-      alert("Archivo JSON inválido");
-    }
-  };
-  reader.readAsText(file);
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            projects = JSON.parse(e.target.result);
+            saveProjects();
+            renderProjects();
+        } catch {
+            alert("Archivo JSON inválido");
+        }
+    };
+    reader.readAsText(file);
 }
 
 // Inicializar
 renderProjects();
+
 
 
 
