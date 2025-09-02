@@ -25,12 +25,12 @@
     </div>
   </div>
 
+  <!-- 🔹 El script va dentro de <script> -->
   <script>
     const excelInput = document.getElementById("excelFile");
     const uploadBtn = document.getElementById("uploadExcel");
     const excelTable = document.getElementById("excelTable");
 
-    // ---- Función para renderizar tabla con DataTables ----
     function renderTable(data) {
       if ($.fn.DataTable.isDataTable("#excelTable")) {
         $("#excelTable").DataTable().destroy();
@@ -45,7 +45,6 @@
         return newRow;
       });
 
-      // Encabezados con inputs de filtro
       const thead = document.createElement("thead");
       const headerRow = document.createElement("tr");
       normalizedData[0].forEach(header => {
@@ -56,7 +55,6 @@
       thead.appendChild(headerRow);
       excelTable.appendChild(thead);
 
-      // Filas
       const tbody = document.createElement("tbody");
       normalizedData.slice(1).forEach(row => {
         const tr = document.createElement("tr");
@@ -69,7 +67,6 @@
       });
       excelTable.appendChild(tbody);
 
-      // Inicializar DataTables con filtros
       const table = $("#excelTable").DataTable({
         paging: true,
         searching: true,
@@ -79,7 +76,6 @@
         language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" }
       });
 
-      // Agregar inputs de búsqueda en cada columna
       $("#excelTable thead th").each(function () {
         const title = $(this).text();
         $(this).html(title + '<br><input type="text" placeholder="Filtrar" style="width:100%"/>');
@@ -95,7 +91,6 @@
       });
     }
 
-    // ---- Guardar archivo en localStorage ----
     uploadBtn.addEventListener("click", () => {
       if (excelInput.files.length === 0) {
         alert("Seleccione un archivo Excel.");
@@ -114,7 +109,6 @@
       reader.readAsArrayBuffer(file);
     });
 
-    // ---- Cargar archivo fijo desde localStorage ----
     document.addEventListener("DOMContentLoaded", () => {
       const savedData = localStorage.getItem("excelData");
       if (savedData) {
@@ -124,6 +118,7 @@
   </script>
 </body>
 </html>
+
 
 
 
