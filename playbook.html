@@ -90,7 +90,7 @@
     function renderTable(data) {
       excelView.style.display = "block";
 
-      // Reiniciar tabla previa
+      // Destruir DataTable si ya existe
       if ($.fn.DataTable.isDataTable("#excelTable")) {
         $("#excelTable").DataTable().destroy();
       }
@@ -136,6 +136,7 @@
   </script>
 </body>
 </html>
+
 
 
 
