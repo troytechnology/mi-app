@@ -19,10 +19,13 @@ function saveFilter(filter) {
   localStorage.setItem("lastFilter", filter);
 }
 
-// Formatear descripción (mantener saltos de línea)
+// Formatear descripción (mantener saltos de línea y quitar espacios/tabs iniciales)
 function formatDescription(text) {
-  return text.replace(/\n/g, "<br>");
+  return text
+    .replace(/^\s+/gm, "")   // elimina espacios/tabs al inicio de cada línea
+    .replace(/\n/g, "<br>"); // convierte saltos en <br>
 }
+
 
 // Renderizar proyectos con filtro fijo
 function renderProjects(selectedProject = null) {
@@ -202,6 +205,7 @@ function populateProjectSelect() {
 
 populateProjectSelect();
 renderProjects(lastFilter);
+
 
 
 
