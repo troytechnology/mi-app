@@ -1,8 +1,9 @@
 // Cargar proyectos desde localStorage o iniciar vacío
 let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
-// Guardar último filtro seleccionado (si existe)
-let lastFilter = localStorage.getItem("lastFilter") || "";
+// Guardar último filtro seleccionado (si existe) o usar "MIBANCO" como valor por defecto
+let lastFilter = localStorage.getItem("lastFilter") || "MIBANCO";
+
 
 // Elementos
 const projectList = document.getElementById("projectList");
@@ -197,6 +198,7 @@ function populateProjectSelect() {
 
 populateProjectSelect();
 renderProjects(lastFilter);
+
 
 
 
