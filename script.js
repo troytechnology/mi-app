@@ -29,12 +29,6 @@ function addCase() {
   let caseDescription = caseDescriptionInput.value.trim();
   if (!caseTitle || !caseDescription) return alert("Completa todos los campos");
 
-  // 🔧 Forzar saltos de línea si el texto está corrido
-  caseDescription = caseDescription
-    .replace(/(Análisis:)/gi, "\n$1")
-    .replace(/(Recomendaciones:)/gi, "\n$1")
-    .replace(/\. ([A-ZÁÉÍÓÚÑ])/g, ".\n$1");
-
   let project = projects.find(p => p.name === projectName);
   if (!project) {
     project = { name: projectName, cases: [] };
@@ -98,7 +92,6 @@ function renderProjects() {
   selectProject.innerHTML = '<option value="">-- Selecciona un proyecto existente --</option>';
 
   projects.forEach((project, projIndex) => {
-    // actualizar selects
     const option = document.createElement("option");
     option.value = project.name;
     option.textContent = project.name;
@@ -109,12 +102,10 @@ function renderProjects() {
 
     if (projectFilter.value && projectFilter.value !== project.name) return;
 
-    // tarjeta del proyecto
     const card = document.createElement("div");
     card.className = "card p-3 mb-3";
     card.innerHTML = `<h5>Proyecto: ${project.name}</h5>`;
 
-    // casos en acordeón
     const accordion = document.createElement("div");
     accordion.className = "accordion";
     accordion.id = `accordion-${projIndex}`;
@@ -130,7 +121,7 @@ function renderProjects() {
         </h2>
         <div id="collapse-${projIndex}-${i}" class="accordion-collapse collapse" data-bs-parent="#accordion-${projIndex}">
           <div class="accordion-body case-description">
-            ${c.description.replace(/\n/g, "<br>")}
+            ${c.description.split("\n").map(line => `<p>${line}</p>`).join("")}
             <div class="mt-2">
               <button class="btn btn-warning btn-sm me-1">Editar</button>
               <button class="btn btn-danger btn-sm">Eliminar</button>
@@ -153,8 +144,9 @@ function renderProjects() {
   });
 }
 
-// Render inicial
 renderProjects();
+
+
 
 
 
