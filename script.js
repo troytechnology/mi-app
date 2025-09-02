@@ -1,23 +1,32 @@
 // Cargar proyectos desde localStorage o iniciar vacío
 let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
+// Guardar último filtro seleccionado (si existe)
+let lastFilter = localStorage.getItem("lastFilter") || "";
+
+// Elementos
 const projectList = document.getElementById("projectList");
 const selectProject = document.getElementById("selectProject");
 const projectFilter = document.getElementById("projectFilter");
 
-// Guardar en localStorage
+// Guardar proyectos en localStorage
 function saveProjects() {
   localStorage.setItem("projects", JSON.stringify(projects));
 }
 
-// Formatear descripción (para mantener saltos de línea)
+// Guardar filtro en localStorage
+function saveFilter(filter) {
+  localStorage.setItem("lastFilter", filter);
+}
+
+// Formatear descripción (mantener saltos de línea)
 function formatDescription(text) {
   return text.replace(/\n/g, "<br>");
 }
 
 // Renderizar proyectos con filtro fijo
 function renderProjects(selectedProject = null) {
-  const activeFilter = selectedProject !== null ? selectedProject : projectFilter.value;
+  const activeFilter = selectedProject !== null ? selectedProject : (lastFilter || projectFilter.value);
   projectList.innerHTML = "";
 
   // Reset selects
@@ -70,7 +79,7 @@ function renderProjects(selectedProject = null) {
       item.querySelector(".btn-danger").addEventListener("click", () => {
         project.cases.splice(i, 1);
         saveProjects();
-        renderProjects(activeFilter); // mantener el filtro activo
+        renderProjects(activeFilter); // mantener filtro activo
       });
 
       accordion.appendChild(item);
@@ -82,6 +91,7 @@ function renderProjects(selectedProject = null) {
 
   // Mantener el valor seleccionado fijo
   projectFilter.value = activeFilter || "";
+  saveFilter(activeFilter || "");
 }
 
 // ➕ Agregar caso
@@ -169,7 +179,9 @@ document.getElementById("deleteAll").addEventListener("click", () => {
 
 // 🔍 Filtrar por proyecto
 projectFilter.addEventListener("change", () => {
-  renderProjects(projectFilter.value);
+  const selected = projectFilter.value;
+  saveFilter(selected);  // guardar el nuevo filtro
+  renderProjects(selected);
 });
 
 // 🚀 Inicializar
@@ -184,8 +196,7 @@ function populateProjectSelect() {
 }
 
 populateProjectSelect();
-renderProjects();
-
+renderProjects(lastFilter);
 
 
 
