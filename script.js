@@ -86,6 +86,15 @@ function clearInputs() {
   caseDescriptionInput.value = "";
 }
 
+// 🔧 función para formatear saltos de línea como párrafos alineados a la izquierda
+function formatDescription(text) {
+  if (!text) return "";
+  return text
+    .split(/\n+/)
+    .map(line => `<p>${line.trim()}</p>`)
+    .join("");
+}
+
 function renderProjects() {
   projectList.innerHTML = "";
   projectFilter.innerHTML = '<option value="">Todos los proyectos</option>';
@@ -121,7 +130,7 @@ function renderProjects() {
         </h2>
         <div id="collapse-${projIndex}-${i}" class="accordion-collapse collapse" data-bs-parent="#accordion-${projIndex}">
           <div class="accordion-body case-description">
-            ${c.description.split("\n").map(line => `<p>${line}</p>`).join("")}
+            ${formatDescription(c.description)}
             <div class="mt-2">
               <button class="btn btn-warning btn-sm me-1">Editar</button>
               <button class="btn btn-danger btn-sm">Eliminar</button>
