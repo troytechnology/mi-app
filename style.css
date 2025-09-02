@@ -18,6 +18,7 @@ textarea {
   text-align: left;
 }
 
+/* 🔧 Corrección: párrafos alineados al margen izquierdo */
 .case-description p {
   margin: 0 0 12px 0;
   text-indent: 0 !important;
@@ -27,7 +28,4 @@ textarea {
 button {
   border-radius: 8px !important;
 }
-
-
-
 
