@@ -26,8 +26,14 @@ function addCase() {
   }
 
   const caseTitle = caseTitleInput.value.trim();
-  const caseDescription = caseDescriptionInput.value.trim();
+  let caseDescription = caseDescriptionInput.value.trim();
   if (!caseTitle || !caseDescription) return alert("Completa todos los campos");
+
+  // 🔧 Forzar saltos de línea si el texto está corrido
+  caseDescription = caseDescription
+    .replace(/(Análisis:)/gi, "\n$1")
+    .replace(/(Recomendaciones:)/gi, "\n$1")
+    .replace(/\. ([A-ZÁÉÍÓÚÑ])/g, ".\n$1");
 
   let project = projects.find(p => p.name === projectName);
   if (!project) {
@@ -70,7 +76,6 @@ function importJSON(event) {
     } catch {
       alert("Archivo inválido");
     }
-    // Reset para poder volver a importar el mismo archivo si hace falta
     event.target.value = "";
   };
   reader.readAsText(file);
@@ -124,8 +129,8 @@ function renderProjects() {
           </button>
         </h2>
         <div id="collapse-${projIndex}-${i}" class="accordion-collapse collapse" data-bs-parent="#accordion-${projIndex}">
-          <div class="accordion-body">
-            ${c.description}
+          <div class="accordion-body case-description">
+            ${c.description.replace(/\n/g, "<br>")}
             <div class="mt-2">
               <button class="btn btn-warning btn-sm me-1">Editar</button>
               <button class="btn btn-danger btn-sm">Eliminar</button>
@@ -134,7 +139,6 @@ function renderProjects() {
         </div>
       `;
 
-      // eliminar caso
       item.querySelector(".btn-danger").addEventListener("click", () => {
         project.cases.splice(i, 1);
         saveProjects();
@@ -151,8 +155,6 @@ function renderProjects() {
 
 // Render inicial
 renderProjects();
-
-
 
 
 
