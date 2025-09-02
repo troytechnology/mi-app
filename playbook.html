@@ -1,141 +1,59 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📑 Playbook</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+function renderTable(data) {
+  excelView.style.display = "block";
 
-  <!-- DataTables -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-  <link rel="stylesheet" href="style.css">
+  // Destruir DataTable si ya existe
+  if ($.fn.DataTable.isDataTable("#excelTable")) {
+    $("#excelTable").DataTable().destroy();
+  }
+  excelTable.innerHTML = "";
 
-  <style>
-    #excelTable {
-      width: 100% !important;
-      border-collapse: collapse;
-    }
-    #excelTable th, #excelTable td {
-      text-align: left;
-      padding: 6px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-    }
-    #excelTable th {
-      background: #f8f9fa;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-  <div class="container my-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>📑 Playbook</h2>
-      <a href="index.html" class="btn btn-outline-dark btn-sm">⬅️ Volver</a>
-    </div>
+  // Asegurar que todas las filas tengan la misma cantidad de columnas
+  const colCount = data[0].length;
+  const normalizedData = data.map(row => {
+    const newRow = [...row];
+    while (newRow.length < colCount) newRow.push(""); // rellenar vacíos
+    if (newRow.length > colCount) newRow.length = colCount; // recortar extras
+    return newRow;
+  });
 
-    <div class="card p-3 mb-3">
-      <h5>Subir Archivo Excel</h5>
-      <input type="file" id="uploadExcel" accept=".xlsx,.xls" class="form-control mb-3">
-      <button id="processExcel" class="btn btn-primary btn-sm">🔄 Actualizar</button>
-    </div>
-
-    <div id="excelView" style="display:none;">
-      <h4>📊 Contenido del Excel</h4>
-      <table id="excelTable" class="display"></table>
-    </div>
-  </div>
-
-  <!-- JS -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-  <script>
-    const uploadExcel = document.getElementById("uploadExcel");
-    const processBtn = document.getElementById("processExcel");
-    const excelView = document.getElementById("excelView");
-    const excelTable = document.getElementById("excelTable");
-    let excelFile;
-
-    // 🔄 Mostrar Excel guardado en localStorage al cargar la página
-    window.addEventListener("DOMContentLoaded", () => {
-      const savedExcel = localStorage.getItem("playbookExcelData");
-      if (savedExcel) {
-        renderTable(JSON.parse(savedExcel));
-      }
+  // Encabezados
+  if (normalizedData.length > 0) {
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    normalizedData[0].forEach(header => {
+      const th = document.createElement("th");
+      th.textContent = header;
+      headerRow.appendChild(th);
     });
+    thead.appendChild(headerRow);
+    excelTable.appendChild(thead);
+  }
 
-    uploadExcel.addEventListener("change", e => {
-      excelFile = e.target.files[0];
+  // Filas
+  const tbody = document.createElement("tbody");
+  normalizedData.slice(1).forEach(row => {
+    const tr = document.createElement("tr");
+    row.forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell ?? "";
+      tr.appendChild(td);
     });
+    tbody.appendChild(tr);
+  });
+  excelTable.appendChild(tbody);
 
-    processBtn.addEventListener("click", () => {
-      if (!excelFile) return alert("Selecciona un archivo Excel");
-
-      const reader = new FileReader();
-      reader.onload = e => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: "array" });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
-        renderTable(jsonData);
-        localStorage.setItem("playbookExcelData", JSON.stringify(jsonData));
-      };
-      reader.readAsArrayBuffer(excelFile);
-    });
-
-    // 📊 Renderizar tabla con DataTables
-    function renderTable(data) {
-      excelView.style.display = "block";
-
-      // Destruir DataTable si ya existe
-      if ($.fn.DataTable.isDataTable("#excelTable")) {
-        $("#excelTable").DataTable().destroy();
-      }
-      excelTable.innerHTML = "";
-
-      // Encabezados
-      if (data.length > 0) {
-        const thead = document.createElement("thead");
-        const headerRow = document.createElement("tr");
-        data[0].forEach(header => {
-          const th = document.createElement("th");
-          th.textContent = header;
-          headerRow.appendChild(th);
-        });
-        thead.appendChild(headerRow);
-        excelTable.appendChild(thead);
-      }
-
-      // Filas
-      const tbody = document.createElement("tbody");
-      data.slice(1).forEach(row => {
-        const tr = document.createElement("tr");
-        row.forEach(cell => {
-          const td = document.createElement("td");
-          td.textContent = cell ?? "";
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      });
-      excelTable.appendChild(tbody);
-
-      // Inicializar DataTables con filtros
-      $("#excelTable").DataTable({
-        paging: true,
-        searching: true,
-        ordering: true,
-        pageLength: 10,
-        language: {
-          url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
-        }
-      });
+  // Inicializar DataTables con filtros
+  $("#excelTable").DataTable({
+    paging: true,
+    searching: true,
+    ordering: true,
+    pageLength: 10,
+    language: {
+      url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
     }
-  </script>
-</body>
-</html>
+  });
+}
+
 
 
 
