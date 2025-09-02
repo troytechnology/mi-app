@@ -1,114 +1,70 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Playbook</title>
-
-  <!-- Bootstrap (opcional para botones bonitos) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
-
-  <!-- DataTables core -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
-  <!-- DataTables Select (requerido por SearchPanes) -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css"/>
-  <!-- DataTables SearchPanes (filtros estilo Excel) -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css"/>
-
-  <!-- Tus estilos -->
-  <link rel="stylesheet" href="style.css"/>
-
-  <style>
-    /* Ocupa el ancho total y alto de pantalla con scroll si hace falta */
-    .playbook-wrap {
-      max-width: none !important;
-      width: 100%;
-      padding: 24px;
-    }
-    .dt-container .dt-searchPanes {
-      margin-bottom: 16px;
-    }
-    /* Tabla a pantalla completa con scroll horizontal si hace falta */
-    #excelTable {
-      width: 100% !important;
-    }
-    .dataTables_wrapper .dataTables_scroll {
-      overflow: auto;
-    }
-
-    /* Botonera superior */
-    .playbook-header {
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      gap: 12px; 
-      margin-bottom: 12px;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📑 Playbook</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="playbook-wrap container-fluid">
-    <div class="playbook-header">
-      <h1 class="h3 m-0">📒 Playbook</h1>
-      <a href="index.html" class="btn btn-outline-secondary btn-sm">⟵ Volver</a>
+  <div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>📑 Playbook</h2>
+      <a href="index.html" class="btn btn-outline-dark btn-sm">⬅️ Volver</a>
     </div>
 
-    <!-- Cargar/Actualizar Excel -->
-    <div class="card mb-3">
-      <div class="card-body">
-        <form id="excelForm" class="row g-2 align-items-center">
-          <div class="col-sm-6 col-md-8">
-            <input class="form-control" type="file" id="excelInput" accept=".xlsx,.xls,.csv"/>
-          </div>
-          <div class="col-sm-6 col-md-4 d-flex gap-2">
-            <button id="updateExcelBtn" type="submit" class="btn btn-primary w-100">
-              🔄 Actualizar
-            </button>
-            <button id="clearExcelBtn" type="button" class="btn btn-outline-danger">
-              🗑️ Limpiar guardado
-            </button>
-          </div>
-        </form>
-      </div>
+    <div class="card p-3 mb-3">
+      <h5>Subir Archivo Excel</h5>
+      <input type="file" id="uploadExcel" accept=".xlsx,.xls" class="form-control mb-3">
+      <button id="processExcel" class="btn btn-primary btn-sm">🔄 Actualizar</button>
     </div>
 
-    <!-- Contenedor de tabla -->
-    <div id="excelView" style="display:none">
-      <table id="excelTable" class="display nowrap stripe hover" style="width:100%">
-        <thead></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <!-- Mensaje cuando no hay datos -->
-    <div id="noDataMsg" class="alert alert-info" role="alert" style="display:none;">
-      No hay datos cargados todavía. Sube un Excel y presiona <strong>Actualizar</strong>.
+    <div id="excelView" style="display:none;">
+      <h4>📊 Contenido del Excel</h4>
+      <div id="excelContent" class="table-responsive"></div>
     </div>
   </div>
 
-  <!-- jQuery (requerido por DataTables) -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script>
+    const uploadExcel = document.getElementById("uploadExcel");
+    const processBtn = document.getElementById("processExcel");
+    const excelView = document.getElementById("excelView");
+    const excelContent = document.getElementById("excelContent");
+    let excelFile;
 
-  <!-- DataTables core -->
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <!-- DataTables Select -->
-  <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
-  <!-- DataTables SearchPanes -->
-  <script src="https://cdn.datatables.net/searchpanes/2.2.0/js/dataTables.searchPanes.min.js"></script>
+    // 🔄 Mostrar Excel guardado en localStorage
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedExcel = localStorage.getItem("playbookExcel");
+      if (savedExcel) {
+        excelContent.innerHTML = savedExcel;
+        excelView.style.display = "block";
+      }
+    });
 
-  <!-- SheetJS para leer Excel -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    uploadExcel.addEventListener("change", e => {
+      excelFile = e.target.files[0];
+    });
 
-  <!-- Tu script -->
-  <script src="script.js"></script>
+    processBtn.addEventListener("click", () => {
+      if (!excelFile) return alert("Selecciona un archivo Excel");
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const html = XLSX.utils.sheet_to_html(firstSheet);
+
+        excelContent.innerHTML = html;
+        excelView.style.display = "block";
+        localStorage.setItem("playbookExcel", html); // ✅ Guardar para que quede fijo
+      };
+      reader.readAsArrayBuffer(excelFile);
+    });
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
