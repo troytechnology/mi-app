@@ -100,7 +100,12 @@ document.getElementById("addCase").addEventListener("click", () => {
   const newProjectName = document.getElementById("projectName").value.trim();
   const selectedProject = document.getElementById("selectProject").value;
   const caseTitle = document.getElementById("caseTitle").value.trim();
-  const caseDesc = document.getElementById("caseDescription").value.trim();
+
+  // 🔥 Limpiar descripción eliminando tabulaciones y espacios innecesarios
+  let caseDesc = document.getElementById("caseDescription").value
+    .replace(/\t+/g, "")       // quitar tabulaciones
+    .replace(/^\s+/gm, "")     // quitar espacios al inicio de cada línea
+    .trim();                   // quitar espacios extra al inicio y final
 
   if (!caseTitle || !caseDesc) {
     alert("Por favor completa todos los campos del caso.");
@@ -121,7 +126,7 @@ document.getElementById("addCase").addEventListener("click", () => {
 
   projectObj.cases.push({ title: caseTitle, description: caseDesc });
   saveProjects();
-  renderProjects(projectFilter.value); // mantener filtro
+  renderProjects(projectFilter.value);
   populateProjectSelect();
 
   document.getElementById("projectName").value = "";
@@ -129,6 +134,7 @@ document.getElementById("addCase").addEventListener("click", () => {
   document.getElementById("caseTitle").value = "";
   document.getElementById("caseDescription").value = "";
 });
+
 
 // 📤 Exportar JSON
 document.getElementById("exportJSON").addEventListener("click", () => {
@@ -198,6 +204,7 @@ function populateProjectSelect() {
 
 populateProjectSelect();
 renderProjects(lastFilter);
+
 
 
 
