@@ -28,4 +28,14 @@ textarea {
 button {
   border-radius: 8px !important;
 }
+/* Playbook: asegurar pantalla completa y scroll horizontal si hace falta */
+.playbook-wrap {
+  max-width: none !important;
+  width: 100%;
+}
+
+#excelTable {
+  width: 100% !important;
+}
+
 
