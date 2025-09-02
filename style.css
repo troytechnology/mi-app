@@ -15,12 +15,14 @@ textarea {
   white-space: pre-wrap;
   word-wrap: break-word;
   line-height: 1.6;
+  text-align: left;
 }
 
 /* 🔧 Corrección: párrafos alineados al margen izquierdo */
 .case-description p {
-  margin: 0 0 10px 0;   /* espacio solo abajo, sin sangría izquierda */
-  text-align: left;     /* asegura alineación izquierda */
+  margin: 0 0 12px 0;
+  text-indent: 0 !important;
+  text-align: left !important;
 }
 
 button {
