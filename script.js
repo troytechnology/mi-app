@@ -6,8 +6,6 @@ const caseTitleInput = document.getElementById("caseTitle");
 const caseDescriptionInput = document.getElementById("caseDescription");
 const projectList = document.getElementById("projectList");
 const projectFilter = document.getElementById("projectFilter");
-const excelView = document.getElementById("excelView");
-const excelContent = document.getElementById("excelContent");
 
 // Botones
 document.getElementById("addCase").addEventListener("click", addCase);
@@ -15,13 +13,7 @@ document.getElementById("deleteAll").addEventListener("click", deleteAll);
 document.getElementById("exportJSON").addEventListener("click", exportJSON);
 document.getElementById("importJSON").addEventListener("click", () => document.getElementById("importFile").click());
 document.getElementById("importFile").addEventListener("change", importJSON);
-document.getElementById("viewAll").addEventListener("click", () => {
-  projectFilter.value = "";
-  renderProjects();
-});
 document.getElementById("projectFilter").addEventListener("change", renderProjects);
-document.getElementById("uploadExcelBtn").addEventListener("click", () => document.getElementById("uploadExcel").click());
-document.getElementById("uploadExcel").addEventListener("change", handleExcel);
 
 function addCase() {
   let projectName = projectNameInput.value.trim();
@@ -105,12 +97,11 @@ function formatDescription(text) {
 
 function renderProjects() {
   projectList.innerHTML = "";
-  excelView.style.display = "none";
 
   projectFilter.innerHTML = '<option value="">Todos los proyectos</option>';
   selectProject.innerHTML = '<option value="">-- Selecciona un proyecto existente --</option>';
 
-  projects.forEach((project, projIndex) => {
+  projects.forEach(project => {
     const option = document.createElement("option");
     option.value = project.name;
     option.textContent = project.name;
@@ -143,47 +134,18 @@ function renderProjects() {
             ${c.title}
           </button>
         </h2>
-        <div id="collapse-${projIndex}-${i}" class="accordion-collapse collapse" data-bs-parent="#accordion-${projIndex}">
+        <div id="collapse-${projIndex}-${i}" class="accordion-collapse collapse" data-bs-parent="#accordion-${projIndex}"> 
           <div class="accordion-body case-description">
             ${formatDescription(c.description)}
-            <div class="mt-2">
-              <button class="btn btn-warning btn-sm me-1">Editar</button>
-              <button class="btn btn-danger btn-sm">Eliminar</button>
-            </div>
           </div>
         </div>
       `;
-
-      item.querySelector(".btn-danger").addEventListener("click", () => {
-        project.cases.splice(i, 1);
-        saveProjects();
-        renderProjects();
-      });
-
       accordion.appendChild(item);
     });
 
     card.appendChild(accordion);
     projectList.appendChild(card);
   });
-}
-
-function handleExcel(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = e => {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: "array" });
-    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-    const html = XLSX.utils.sheet_to_html(firstSheet);
-
-    excelContent.innerHTML = html;
-    excelView.style.display = "block";
-    projectList.innerHTML = "";
-  };
-  reader.readAsArrayBuffer(file);
 }
 
 renderProjects();
