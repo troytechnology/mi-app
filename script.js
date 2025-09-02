@@ -15,9 +15,12 @@ function formatDescription(text) {
   return text.replace(/\n/g, "<br>");
 }
 
-// Renderizar proyectos con filtro opcional
-function renderProjects(selectedProject = projectFilter.value) {
+// Renderizar proyectos con filtro fijo
+function renderProjects(selectedProject = null) {
+  const activeFilter = selectedProject !== null ? selectedProject : projectFilter.value;
   projectList.innerHTML = "";
+
+  // Reset selects
   projectFilter.innerHTML = '<option value="">Todos los proyectos</option>';
   selectProject.innerHTML = '<option value="">-- Selecciona un proyecto existente --</option>';
 
@@ -32,7 +35,7 @@ function renderProjects(selectedProject = projectFilter.value) {
     selectProject.appendChild(option2);
 
     // ✅ Mostrar solo el proyecto seleccionado
-    if (selectedProject && selectedProject !== project.name) return;
+    if (activeFilter && activeFilter !== project.name) return;
 
     // Crear tarjeta del proyecto
     const card = document.createElement("div");
@@ -67,7 +70,7 @@ function renderProjects(selectedProject = projectFilter.value) {
       item.querySelector(".btn-danger").addEventListener("click", () => {
         project.cases.splice(i, 1);
         saveProjects();
-        renderProjects(selectedProject);
+        renderProjects(activeFilter); // mantener el filtro activo
       });
 
       accordion.appendChild(item);
@@ -77,19 +80,8 @@ function renderProjects(selectedProject = projectFilter.value) {
     projectList.appendChild(card);
   });
 
-  // Mantener la selección activa
-  projectFilter.value = selectedProject || "";
-}
-
-// Llenar select de proyectos
-function populateProjectSelect() {
-  selectProject.innerHTML = '<option value="">-- Selecciona un proyecto existente --</option>';
-  projects.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p.name;
-    opt.textContent = p.name;
-    selectProject.appendChild(opt);
-  });
+  // Mantener el valor seleccionado fijo
+  projectFilter.value = activeFilter || "";
 }
 
 // ➕ Agregar caso
@@ -118,7 +110,7 @@ document.getElementById("addCase").addEventListener("click", () => {
 
   projectObj.cases.push({ title: caseTitle, description: caseDesc });
   saveProjects();
-  renderProjects();
+  renderProjects(projectFilter.value); // mantener filtro
   populateProjectSelect();
 
   document.getElementById("projectName").value = "";
@@ -156,7 +148,7 @@ document.getElementById("importFile").addEventListener("change", (e) => {
         }));
       }
       saveProjects();
-      renderProjects();
+      renderProjects(projectFilter.value); // mantener filtro
       populateProjectSelect();
     } catch (err) {
       alert("Archivo inválido: " + err.message);
@@ -181,9 +173,18 @@ projectFilter.addEventListener("change", () => {
 });
 
 // 🚀 Inicializar
+function populateProjectSelect() {
+  selectProject.innerHTML = '<option value="">-- Selecciona un proyecto existente --</option>';
+  projects.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.name;
+    opt.textContent = p.name;
+    selectProject.appendChild(opt);
+  });
+}
+
 populateProjectSelect();
 renderProjects();
-
 
 
 
