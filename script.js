@@ -26,15 +26,8 @@ function addCase() {
   }
 
   const caseTitle = caseTitleInput.value.trim();
-  let caseDescription = caseDescriptionInput.value.trim();
-
+  const caseDescription = caseDescriptionInput.value.trim();
   if (!caseTitle || !caseDescription) return alert("Completa todos los campos");
-
-  // 🔧 Forzar saltos de línea aunque el texto venga corrido
-  caseDescription = caseDescription
-    .replace(/(Análisis:)/gi, "\n$1")
-    .replace(/(Recomendaciones:)/gi, "\n$1")
-    .replace(/\. ([A-ZÁÉÍÓÚÑ])/g, ".\n$1");
 
   let project = projects.find(p => p.name === projectName);
   if (!project) {
@@ -131,8 +124,8 @@ function renderProjects() {
           </button>
         </h2>
         <div id="collapse-${projIndex}-${i}" class="accordion-collapse collapse" data-bs-parent="#accordion-${projIndex}">
-          <div class="accordion-body case-description">
-            ${c.description.replace(/\n/g, "<br>")}
+          <div class="accordion-body">
+            ${c.description}
             <div class="mt-2">
               <button class="btn btn-warning btn-sm me-1">Editar</button>
               <button class="btn btn-danger btn-sm">Eliminar</button>
@@ -158,6 +151,8 @@ function renderProjects() {
 
 // Render inicial
 renderProjects();
+
+
 
 
 
