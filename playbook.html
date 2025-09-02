@@ -1,123 +1,110 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Playbook</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Bootstrap (opcional para botones bonitos) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+
+  <!-- DataTables core -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+  <!-- DataTables Select (requerido por SearchPanes) -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css"/>
+  <!-- DataTables SearchPanes (filtros estilo Excel) -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css"/>
+
+  <!-- Tus estilos -->
+  <link rel="stylesheet" href="style.css"/>
+
+  <style>
+    /* Ocupa el ancho total y alto de pantalla con scroll si hace falta */
+    .playbook-wrap {
+      max-width: none !important;
+      width: 100%;
+      padding: 24px;
+    }
+    .dt-container .dt-searchPanes {
+      margin-bottom: 16px;
+    }
+    /* Tabla a pantalla completa con scroll horizontal si hace falta */
+    #excelTable {
+      width: 100% !important;
+    }
+    .dataTables_wrapper .dataTables_scroll {
+      overflow: auto;
+    }
+
+    /* Botonera superior */
+    .playbook-header {
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      gap: 12px; 
+      margin-bottom: 12px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📑 Playbook</h1>
-    <button onclick="window.location.href='index.html'">⬅ Volver</button>
-
-    <div>
-      <h3>Subir Archivo Excel</h3>
-      <input type="file" id="excelFile" accept=".xlsx,.xls">
-      <button id="uploadExcel">Actualizar</button>
+  <div class="playbook-wrap container-fluid">
+    <div class="playbook-header">
+      <h1 class="h3 m-0">📒 Playbook</h1>
+      <a href="index.html" class="btn btn-outline-secondary btn-sm">⟵ Volver</a>
     </div>
 
-    <div style="margin-top:20px;">
-      <table id="excelTable" class="display" style="width:100%"></table>
+    <!-- Cargar/Actualizar Excel -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <form id="excelForm" class="row g-2 align-items-center">
+          <div class="col-sm-6 col-md-8">
+            <input class="form-control" type="file" id="excelInput" accept=".xlsx,.xls,.csv"/>
+          </div>
+          <div class="col-sm-6 col-md-4 d-flex gap-2">
+            <button id="updateExcelBtn" type="submit" class="btn btn-primary w-100">
+              🔄 Actualizar
+            </button>
+            <button id="clearExcelBtn" type="button" class="btn btn-outline-danger">
+              🗑️ Limpiar guardado
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Contenedor de tabla -->
+    <div id="excelView" style="display:none">
+      <table id="excelTable" class="display nowrap stripe hover" style="width:100%">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Mensaje cuando no hay datos -->
+    <div id="noDataMsg" class="alert alert-info" role="alert" style="display:none;">
+      No hay datos cargados todavía. Sube un Excel y presiona <strong>Actualizar</strong>.
     </div>
   </div>
 
-  <!-- 🔹 El script va dentro de <script> -->
-  <script>
-    const excelInput = document.getElementById("excelFile");
-    const uploadBtn = document.getElementById("uploadExcel");
-    const excelTable = document.getElementById("excelTable");
+  <!-- jQuery (requerido por DataTables) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    function renderTable(data) {
-      if ($.fn.DataTable.isDataTable("#excelTable")) {
-        $("#excelTable").DataTable().destroy();
-      }
-      excelTable.innerHTML = "";
+  <!-- DataTables core -->
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <!-- DataTables Select -->
+  <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
+  <!-- DataTables SearchPanes -->
+  <script src="https://cdn.datatables.net/searchpanes/2.2.0/js/dataTables.searchPanes.min.js"></script>
 
-      const colCount = data[0].length;
-      const normalizedData = data.map(row => {
-        const newRow = [...row];
-        while (newRow.length < colCount) newRow.push("");
-        if (newRow.length > colCount) newRow.length = colCount;
-        return newRow;
-      });
+  <!-- SheetJS para leer Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-      const thead = document.createElement("thead");
-      const headerRow = document.createElement("tr");
-      normalizedData[0].forEach(header => {
-        const th = document.createElement("th");
-        th.textContent = header;
-        headerRow.appendChild(th);
-      });
-      thead.appendChild(headerRow);
-      excelTable.appendChild(thead);
-
-      const tbody = document.createElement("tbody");
-      normalizedData.slice(1).forEach(row => {
-        const tr = document.createElement("tr");
-        row.forEach(cell => {
-          const td = document.createElement("td");
-          td.textContent = cell ?? "";
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      });
-      excelTable.appendChild(tbody);
-
-      const table = $("#excelTable").DataTable({
-        paging: true,
-        searching: true,
-        ordering: true,
-        pageLength: 15,
-        scrollX: true,
-        language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" }
-      });
-
-      $("#excelTable thead th").each(function () {
-        const title = $(this).text();
-        $(this).html(title + '<br><input type="text" placeholder="Filtrar" style="width:100%"/>');
-      });
-
-      table.columns().every(function () {
-        const that = this;
-        $("input", this.header()).on("keyup change clear", function () {
-          if (that.search() !== this.value) {
-            that.search(this.value).draw();
-          }
-        });
-      });
-    }
-
-    uploadBtn.addEventListener("click", () => {
-      if (excelInput.files.length === 0) {
-        alert("Seleccione un archivo Excel.");
-        return;
-      }
-      const file = excelInput.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-        localStorage.setItem("excelData", JSON.stringify(sheet));
-        renderTable(sheet);
-      };
-      reader.readAsArrayBuffer(file);
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const savedData = localStorage.getItem("excelData");
-      if (savedData) {
-        renderTable(JSON.parse(savedData));
-      }
-    });
-  </script>
+  <!-- Tu script -->
+  <script src="script.js"></script>
 </body>
 </html>
+
+
 
 
 
