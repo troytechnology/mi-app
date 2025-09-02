@@ -1,170 +1,98 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lista con checkboxes + filtro + aplicar</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tabla estilo Excel con checkboxes</title>
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <style>
-    body { background:#f7f8fa; }
-    .item-label { cursor: pointer; }
-    .results-pill { margin: .25rem; }
-    .muted { color:#6c757d; }
+    body { margin: 20px; }
+    #resultado { margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <div class="container py-4">
-    <h1 class="h4 mb-3">Lista de ítems</h1>
+  <h2>Tabla estilo Excel con filtros</h2>
 
-    <!-- Controles -->
-    <div class="card mb-3">
-      <div class="card-body">
-        <div class="row g-2 align-items-center">
-          <div class="col-md-6">
-            <label for="search" class="form-label mb-1">Buscar</label>
-            <input id="search" type="search" class="form-control" placeholder="Escribe para filtrar…">
-          </div>
-          <div class="col-md-6 d-flex gap-2 pt-4 pt-md-0 justify-content-md-end">
-            <button id="selectVisible" class="btn btn-outline-secondary btn-sm">Seleccionar visibles</button>
-            <button id="clearSelection" class="btn btn-outline-secondary btn-sm">Limpiar selección</button>
-            <button id="applyBtn" class="btn btn-primary btn-sm">Aplicar</button>
-          </div>
-        </div>
-        <div class="mt-2 small muted">
-          <span id="countShown">0</span> visibles &middot; 
-          <span id="countSelected">0</span> seleccionados
-        </div>
-      </div>
-    </div>
+  <!-- Tabla con checkboxes -->
+  <table id="miTabla" class="display table table-striped" style="width:100%">
+    <thead>
+      <tr>
+        <th>✔</th>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Valor</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="checkbox" value="Item 1"></td>
+        <td>Item 1</td>
+        <td>A</td>
+        <td>100</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" value="Item 2"></td>
+        <td>Item 2</td>
+        <td>B</td>
+        <td>200</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" value="Item 3"></td>
+        <td>Item 3</td>
+        <td>A</td>
+        <td>150</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" value="Item 4"></td>
+        <td>Item 4</td>
+        <td>C</td>
+        <td>300</td>
+      </tr>
+    </tbody>
+  </table>
 
-    <!-- Lista -->
-    <div class="card">
-      <div class="list-group list-group-flush" id="itemsList" role="list"></div>
-    </div>
+  <!-- Botón aplicar -->
+  <button id="aplicar" class="btn btn-primary">Aplicar</button>
 
-    <!-- Resultado -->
-    <div class="card mt-4">
-      <div class="card-header">Seleccionados</div>
-      <div class="card-body" id="selectedView">
-        <span class="muted">Nada seleccionado todavía.</span>
-      </div>
-    </div>
-  </div>
+  <!-- Resultado -->
+  <div id="resultado"></div>
 
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script>
-    // Datos de ejemplo (puedes reemplazar con los tuyos)
-    const ITEMS = [
-      "Servidor Web - Producción",
-      "Servidor Web - QA",
-      "Base de Datos Clientes",
-      "Base de Datos Ventas",
-      "Balanceador Interno",
-      "Firewall Perimetral",
-      "API Pasarela Pagos",
-      "Servicio Notificaciones",
-      "Broker de Mensajes",
-      "ETL Nocturno",
-      "Almacenamiento Backups",
-      "Monitorización y Alertas",
-      "Proxy Saliente",
-      "Servicio de Autenticación",
-      "Aplicación Móvil"
-    ];
-
-    // Estado de selección (se conserva aunque filtres)
-    const selected = new Set();
-
-    // Elementos del DOM
-    const listEl = document.getElementById("itemsList");
-    const searchEl = document.getElementById("search");
-    const countShownEl = document.getElementById("countShown");
-    const countSelEl = document.getElementById("countSelected");
-    const applyBtn = document.getElementById("applyBtn");
-    const selectVisibleBtn = document.getElementById("selectVisible");
-    const clearSelectionBtn = document.getElementById("clearSelection");
-    const selectedView = document.getElementById("selectedView");
-
-    // Filtro actual
-    let query = "";
-
-    // Render de la lista segun el filtro
-    function renderList() {
-      const q = query.trim().toLowerCase();
-      const filtered = ITEMS.filter(name => name.toLowerCase().includes(q));
-
-      listEl.innerHTML = "";
-      filtered.forEach((name, idx) => {
-        const id = "item-" + idx + "-" + name.replace(/\W+/g, "_");
-        const checked = selected.has(name) ? "checked" : "";
-
-        const row = document.createElement("label");
-        row.className = "list-group-item d-flex align-items-center gap-2 item-label";
-        row.setAttribute("for", id);
-        row.innerHTML = `
-          <input id="${id}" type="checkbox" class="form-check-input m-0" data-name="${name}" ${checked}>
-          <span>${highlight(name, q)}</span>
-        `;
-        listEl.appendChild(row);
+    $(document).ready(function () {
+      // Activar DataTable (filtros, búsqueda, etc.)
+      $('#miTabla').DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        language: {
+          url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+        }
       });
 
-      // Contadores
-      countShownEl.textContent = filtered.length;
-      countSelEl.textContent = selected.size;
-
-      // Listeners de los checkboxes
-      listEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener("change", (e) => {
-          const name = e.target.dataset.name;
-          e.target.checked ? selected.add(name) : selected.delete(name);
-          countSelEl.textContent = selected.size;
+      // Botón aplicar: mostrar seleccionados
+      $('#aplicar').click(function () {
+        const seleccionados = [];
+        $('#miTabla input[type=checkbox]:checked').each(function () {
+          seleccionados.push($(this).val());
         });
+
+        if (seleccionados.length > 0) {
+          $('#resultado').text("Seleccionados: " + seleccionados.join(", "));
+        } else {
+          $('#resultado').text("No has seleccionado nada.");
+        }
       });
-    }
-
-    // Marcar coincidencias en el texto (bonito para el filtro)
-    function highlight(text, q) {
-      if (!q) return text;
-      const re = new RegExp(`(${escapeRegExp(q)})`, "ig");
-      return text.replace(re, "<mark>$1</mark>");
-    }
-    function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
-
-    // Acciones
-    searchEl.addEventListener("input", () => {
-      query = searchEl.value;
-      renderList();
     });
-
-    selectVisibleBtn.addEventListener("click", () => {
-      listEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.checked = true;
-        selected.add(cb.dataset.name);
-      });
-      countSelEl.textContent = selected.size;
-    });
-
-    clearSelectionBtn.addEventListener("click", () => {
-      selected.clear();
-      renderList();
-    });
-
-    applyBtn.addEventListener("click", () => {
-      if (selected.size === 0) {
-        selectedView.innerHTML = '<span class="muted">Nada seleccionado.</span>';
-        return;
-      }
-      const pills = [...selected]
-        .sort((a,b)=> a.localeCompare(b))
-        .map(name => `<span class="badge text-bg-primary results-pill">${name}</span>`)
-        .join("");
-      selectedView.innerHTML = pills;
-    });
-
-    // Primera carga
-    renderList();
   </script>
 </body>
 </html>
+
 
 
 
