@@ -1,0 +1,31 @@
+body {
+  background-color: #f9f9f9;
+}
+
+.card {
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+textarea {
+  resize: vertical;
+}
+
+.case-description {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* 🔧 Corrección: párrafos alineados al margen izquierdo */
+.case-description p {
+  margin: 0 0 12px 0;
+  text-indent: 0 !important;
+  text-align: left !important;
+}
+
+button {
+  border-radius: 8px !important;
+}
+
