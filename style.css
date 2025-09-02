@@ -17,9 +17,11 @@ body {
 
 .case-description {
   white-space: pre-wrap;     /* respeta saltos de línea */
-  word-wrap: break-word;     /* rompe palabras largas */
-  overflow-wrap: break-word; /* compat extra */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
+
+
 
 
 
