@@ -4,7 +4,6 @@ let projects = JSON.parse(localStorage.getItem("projects")) || [];
 // Guardar último filtro seleccionado (si existe) o usar "MIBANCO" como valor por defecto
 let lastFilter = localStorage.getItem("lastFilter") || "MIBANCO";
 
-
 // Elementos
 const projectList = document.getElementById("projectList");
 const selectProject = document.getElementById("selectProject");
@@ -126,7 +125,7 @@ document.getElementById("addCase").addEventListener("click", () => {
 
   projectObj.cases.push({ title: caseTitle, description: caseDesc });
   saveProjects();
-  renderProjects(projectFilter.value);
+  renderProjects(projectFilter.value); // mantener filtro
   populateProjectSelect();
 
   document.getElementById("projectName").value = "";
@@ -134,7 +133,6 @@ document.getElementById("addCase").addEventListener("click", () => {
   document.getElementById("caseTitle").value = "";
   document.getElementById("caseDescription").value = "";
 });
-
 
 // 📤 Exportar JSON
 document.getElementById("exportJSON").addEventListener("click", () => {
