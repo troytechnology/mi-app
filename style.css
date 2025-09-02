@@ -17,6 +17,13 @@ textarea {
   line-height: 1.6;
 }
 
+/* 🔧 Corrección: párrafos alineados al margen izquierdo */
+.case-description p {
+  margin: 0 0 10px 0;   /* espacio solo abajo, sin sangría izquierda */
+  text-align: left;     /* asegura alineación izquierda */
+}
+
 button {
   border-radius: 8px !important;
 }
+
