@@ -6,13 +6,22 @@ const caseTitleInput = document.getElementById("caseTitle");
 const caseDescriptionInput = document.getElementById("caseDescription");
 const projectList = document.getElementById("projectList");
 const projectFilter = document.getElementById("projectFilter");
+const excelView = document.getElementById("excelView");
+const excelContent = document.getElementById("excelContent");
 
+// Botones
 document.getElementById("addCase").addEventListener("click", addCase);
 document.getElementById("deleteAll").addEventListener("click", deleteAll);
 document.getElementById("exportJSON").addEventListener("click", exportJSON);
 document.getElementById("importJSON").addEventListener("click", () => document.getElementById("importFile").click());
 document.getElementById("importFile").addEventListener("change", importJSON);
-document.getElementById("viewAll").addEventListener("click", renderProjects);
+document.getElementById("viewAll").addEventListener("click", () => {
+  projectFilter.value = "";
+  renderProjects();
+});
+document.getElementById("projectFilter").addEventListener("change", renderProjects);
+document.getElementById("uploadExcelBtn").addEventListener("click", () => document.getElementById("uploadExcel").click());
+document.getElementById("uploadExcel").addEventListener("change", handleExcel);
 
 function addCase() {
   let projectName = projectNameInput.value.trim();
@@ -86,7 +95,6 @@ function clearInputs() {
   caseDescriptionInput.value = "";
 }
 
-// 🔧 función para formatear saltos de línea como párrafos alineados a la izquierda
 function formatDescription(text) {
   if (!text) return "";
   return text
@@ -97,6 +105,8 @@ function formatDescription(text) {
 
 function renderProjects() {
   projectList.innerHTML = "";
+  excelView.style.display = "none";
+
   projectFilter.innerHTML = '<option value="">Todos los proyectos</option>';
   selectProject.innerHTML = '<option value="">-- Selecciona un proyecto existente --</option>';
 
@@ -108,9 +118,14 @@ function renderProjects() {
 
     const option2 = option.cloneNode(true);
     selectProject.appendChild(option2);
+  });
 
-    if (projectFilter.value && projectFilter.value !== project.name) return;
+  // 🔎 Filtrar solo el proyecto seleccionado
+  let filteredProjects = projectFilter.value
+    ? projects.filter(p => p.name === projectFilter.value)
+    : projects;
 
+  filteredProjects.forEach((project, projIndex) => {
     const card = document.createElement("div");
     card.className = "card p-3 mb-3";
     card.innerHTML = `<h5>Proyecto: ${project.name}</h5>`;
@@ -151,6 +166,24 @@ function renderProjects() {
     card.appendChild(accordion);
     projectList.appendChild(card);
   });
+}
+
+function handleExcel(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const html = XLSX.utils.sheet_to_html(firstSheet);
+
+    excelContent.innerHTML = html;
+    excelView.style.display = "block";
+    projectList.innerHTML = "";
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 renderProjects();
