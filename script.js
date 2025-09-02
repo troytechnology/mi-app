@@ -9,9 +9,10 @@ function saveProjects() {
 function renderProjects(filter = "Todos") {
   const projectList = document.getElementById("projectList");
   projectList.innerHTML = "";
-  const caseDescription = document.createElement("p");
+const caseDescription = document.createElement("p");
 caseDescription.classList.add("case-description");
-caseDescription.textContent = caso.descripcion;
+caseDescription.innerHTML = caso.descripcion.replace(/\n/g, "<br>");
+
 
 
   let filtered = filter === "Todos" ? projects : projects.filter(p => p.name === filter);
@@ -174,6 +175,7 @@ document.getElementById("viewAll").addEventListener("click", () => {
 // 🚀 Inicializar
 populateProjectSelect();
 renderProjects();
+
 
 
 
