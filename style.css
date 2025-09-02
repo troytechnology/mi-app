@@ -16,10 +16,12 @@ body {
 }
 
 .case-description {
-  white-space: pre-wrap;   /* Respeta los saltos de línea y ajusta el texto */
-  word-wrap: break-word;   /* Rompe palabras largas si no caben */
-  overflow-wrap: break-word; /* Compatibilidad extra */
+  white-space: pre-wrap;   /* Respeta espacios y saltos de línea */
+  word-wrap: break-word;   /* Rompe palabras largas */
+  overflow-wrap: break-word;
 }
+
+
 
 
 
