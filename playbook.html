@@ -34,6 +34,15 @@
     const excelContent = document.getElementById("excelContent");
     let excelFile;
 
+    // 🔄 Mostrar Excel guardado en localStorage
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedExcel = localStorage.getItem("playbookExcel");
+      if (savedExcel) {
+        excelContent.innerHTML = savedExcel;
+        excelView.style.display = "block";
+      }
+    });
+
     uploadExcel.addEventListener("change", e => {
       excelFile = e.target.files[0];
     });
@@ -50,9 +59,12 @@
 
         excelContent.innerHTML = html;
         excelView.style.display = "block";
+        localStorage.setItem("playbookExcel", html); // ✅ Guardar para que quede fijo
       };
       reader.readAsArrayBuffer(excelFile);
     });
   </script>
 </body>
 </html>
+
+
