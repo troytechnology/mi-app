@@ -1,43 +1,106 @@
-// Cargar proyectos desde localStorage o iniciar vacío
 let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
-// Guardar último filtro seleccionado (si existe) o usar "MIBANCO" como valor por defecto
-let lastFilter = localStorage.getItem("lastFilter") || "MIBANCO";
-
-// Elementos
-const projectList = document.getElementById("projectList");
+const projectNameInput = document.getElementById("projectName");
 const selectProject = document.getElementById("selectProject");
+const caseTitleInput = document.getElementById("caseTitle");
+const caseDescriptionInput = document.getElementById("caseDescription");
+const projectList = document.getElementById("projectList");
 const projectFilter = document.getElementById("projectFilter");
 
-// Guardar proyectos en localStorage
+document.getElementById("addCase").addEventListener("click", addCase);
+document.getElementById("deleteAll").addEventListener("click", deleteAll);
+document.getElementById("exportJSON").addEventListener("click", exportJSON);
+document.getElementById("importJSON").addEventListener("click", () => document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change", importJSON);
+document.getElementById("viewAll").addEventListener("click", renderProjects);
+
+function addCase() {
+  let projectName = projectNameInput.value.trim();
+  const selectedProject = selectProject.value;
+
+  if (!projectName && !selectedProject) {
+    return alert("Debes ingresar un nombre de proyecto nuevo o seleccionar uno existente");
+  }
+  if (selectedProject) {
+    projectName = selectedProject;
+  }
+
+  const caseTitle = caseTitleInput.value.trim();
+  let caseDescription = caseDescriptionInput.value.trim();
+  if (!caseTitle || !caseDescription) return alert("Completa todos los campos");
+
+  let project = projects.find(p => p.name === projectName);
+  if (!project) {
+    project = { name: projectName, cases: [] };
+    projects.push(project);
+  }
+
+  project.cases.push({ title: caseTitle, description: caseDescription });
+  saveProjects();
+  clearInputs();
+  renderProjects();
+}
+
+function deleteAll() {
+  if (confirm("¿Seguro que deseas eliminar todos los proyectos?")) {
+    projects = [];
+    saveProjects();
+    renderProjects();
+  }
+}
+
+function exportJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
+  const dlAnchor = document.createElement("a");
+  dlAnchor.setAttribute("href", dataStr);
+  dlAnchor.setAttribute("download", "projects.json");
+  dlAnchor.click();
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      projects = JSON.parse(e.target.result);
+      saveProjects();
+      renderProjects();
+    } catch {
+      alert("Archivo inválido");
+    }
+    event.target.value = "";
+  };
+  reader.readAsText(file);
+}
+
 function saveProjects() {
   localStorage.setItem("projects", JSON.stringify(projects));
 }
 
-// Guardar filtro en localStorage
-function saveFilter(filter) {
-  localStorage.setItem("lastFilter", filter);
+function clearInputs() {
+  projectNameInput.value = "";
+  selectProject.value = "";
+  caseTitleInput.value = "";
+  caseDescriptionInput.value = "";
 }
 
-// Formatear descripción (mantener saltos de línea y quitar espacios/tabs iniciales)
+// 🔧 función para formatear saltos de línea como párrafos alineados a la izquierda
 function formatDescription(text) {
+  if (!text) return "";
   return text
-    .replace(/^\s+/gm, "")   // elimina espacios/tabs al inicio de cada línea
-    .replace(/\n/g, "<br>"); // convierte saltos en <br>
+    .split(/\n+/)
+    .map(line => `<p>${line.trim()}</p>`)
+    .join("");
 }
 
-
-// Renderizar proyectos con filtro fijo
-function renderProjects(selectedProject = null) {
-  const activeFilter = selectedProject !== null ? selectedProject : (lastFilter || projectFilter.value);
+function renderProjects() {
   projectList.innerHTML = "";
-
-  // Reset selects
   projectFilter.innerHTML = '<option value="">Todos los proyectos</option>';
   selectProject.innerHTML = '<option value="">-- Selecciona un proyecto existente --</option>';
 
   projects.forEach((project, projIndex) => {
-    // Agregar opción a los selects
     const option = document.createElement("option");
     option.value = project.name;
     option.textContent = project.name;
@@ -46,10 +109,8 @@ function renderProjects(selectedProject = null) {
     const option2 = option.cloneNode(true);
     selectProject.appendChild(option2);
 
-    // ✅ Mostrar solo el proyecto seleccionado
-    if (activeFilter && activeFilter !== project.name) return;
+    if (projectFilter.value && projectFilter.value !== project.name) return;
 
-    // Crear tarjeta del proyecto
     const card = document.createElement("div");
     card.className = "card p-3 mb-3";
     card.innerHTML = `<h5>Proyecto: ${project.name}</h5>`;
@@ -78,11 +139,10 @@ function renderProjects(selectedProject = null) {
         </div>
       `;
 
-      // Botón eliminar caso
       item.querySelector(".btn-danger").addEventListener("click", () => {
         project.cases.splice(i, 1);
         saveProjects();
-        renderProjects(activeFilter); // mantener filtro activo
+        renderProjects();
       });
 
       accordion.appendChild(item);
@@ -91,122 +151,9 @@ function renderProjects(selectedProject = null) {
     card.appendChild(accordion);
     projectList.appendChild(card);
   });
-
-  // Mantener el valor seleccionado fijo
-  projectFilter.value = activeFilter || "";
-  saveFilter(activeFilter || "");
 }
 
-// ➕ Agregar caso
-document.getElementById("addCase").addEventListener("click", () => {
-  const newProjectName = document.getElementById("projectName").value.trim();
-  const selectedProject = document.getElementById("selectProject").value;
-  const caseTitle = document.getElementById("caseTitle").value.trim();
-
-  // 🔥 Limpiar descripción eliminando tabulaciones y espacios innecesarios
-  let caseDesc = document.getElementById("caseDescription").value
-    .replace(/\t+/g, "")       // quitar tabulaciones
-    .replace(/^\s+/gm, "")     // quitar espacios al inicio de cada línea
-    .trim();                   // quitar espacios extra al inicio y final
-
-  if (!caseTitle || !caseDesc) {
-    alert("Por favor completa todos los campos del caso.");
-    return;
-  }
-
-  let projectKey = newProjectName || selectedProject;
-  if (!projectKey) {
-    alert("Debes ingresar un nuevo proyecto o seleccionar uno existente.");
-    return;
-  }
-
-  let projectObj = projects.find(p => p.name === projectKey);
-  if (!projectObj) {
-    projectObj = { name: projectKey, cases: [] };
-    projects.push(projectObj);
-  }
-
-  projectObj.cases.push({ title: caseTitle, description: caseDesc });
-  saveProjects();
-  renderProjects(projectFilter.value); // mantener filtro
-  populateProjectSelect();
-
-  document.getElementById("projectName").value = "";
-  document.getElementById("selectProject").value = "";
-  document.getElementById("caseTitle").value = "";
-  document.getElementById("caseDescription").value = "";
-});
-
-// 📤 Exportar JSON
-document.getElementById("exportJSON").addEventListener("click", () => {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
-  const dlAnchor = document.createElement("a");
-  dlAnchor.setAttribute("href", dataStr);
-  dlAnchor.setAttribute("download", "projects.json");
-  dlAnchor.click();
-});
-
-// 📥 Importar JSON
-document.getElementById("importJSON").addEventListener("click", () => {
-  document.getElementById("importFile").click();
-});
-document.getElementById("importFile").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    try {
-      const imported = JSON.parse(event.target.result);
-      if (Array.isArray(imported)) {
-        projects = imported;
-      } else {
-        projects = Object.keys(imported).map(name => ({
-          name,
-          cases: imported[name]
-        }));
-      }
-      saveProjects();
-      renderProjects(projectFilter.value); // mantener filtro
-      populateProjectSelect();
-    } catch (err) {
-      alert("Archivo inválido: " + err.message);
-    }
-  };
-  reader.readAsText(file);
-});
-
-// 🗑 Eliminar todo
-document.getElementById("deleteAll").addEventListener("click", () => {
-  if (confirm("¿Seguro que deseas eliminar todo?")) {
-    projects = [];
-    saveProjects();
-    renderProjects();
-    populateProjectSelect();
-  }
-});
-
-// 🔍 Filtrar por proyecto
-projectFilter.addEventListener("change", () => {
-  const selected = projectFilter.value;
-  saveFilter(selected);  // guardar el nuevo filtro
-  renderProjects(selected);
-});
-
-// 🚀 Inicializar
-function populateProjectSelect() {
-  selectProject.innerHTML = '<option value="">-- Selecciona un proyecto existente --</option>';
-  projects.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p.name;
-    opt.textContent = p.name;
-    selectProject.appendChild(opt);
-  });
-}
-
-populateProjectSelect();
-renderProjects(lastFilter);
-
-
+renderProjects();
 
 
 
